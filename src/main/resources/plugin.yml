@@ -1,0 +1,13 @@
+name: RiseOfLands
+version: '${project.version}'
+main: me.sialim.riseoflands.RiseOfLands
+api-version: '1.21'
+author: bermei
+depend: [PlaceholderAPI]
+commands:
+  culture:
+    description: Manage your culture
+    usage: /<command> <create|join|leave|delete> <culturename>
+    aliases:
+      - cult
+      - c
