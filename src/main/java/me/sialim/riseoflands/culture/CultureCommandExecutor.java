@@ -84,7 +84,7 @@ public class CultureCommandExecutor implements TabExecutor {
             String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture == null) {
                 player.sendMessage("You are not part of any culture to delete.");
-                deleteConfirmations.remove(player.getName());
+                deleteConfirmations.remove(player.getUniqueId());
                 return;
             }
             String deleteResponse = cultureManager.deleteCulture(player.getUniqueId(), playerCulture);
@@ -126,7 +126,7 @@ public class CultureCommandExecutor implements TabExecutor {
                     .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                     .collect(Collectors.toList());
         } else if (args[0].equalsIgnoreCase("delete")) {
-            if (deleteConfirmations.contains(player.getUniqueId().toString())) {
+            if (deleteConfirmations.contains(player.getUniqueId())) {
                 return Collections.singletonList("confirm").stream()
                         .filter(sub -> sub.startsWith(args[1].toLowerCase()))
                         .collect(Collectors.toList());

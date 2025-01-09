@@ -19,7 +19,7 @@ public final class RiseOfLands extends JavaPlugin {
     public void onEnable() {
         // Initialization
         reputationManager = new ReputationManager(this);
-        cultureManager = new CultureManager(this);
+        cultureManager = new CultureManager(this, reputationManager);
         cultureCommandExecutor = new CultureCommandExecutor(cultureManager);
 
         // Listener registration
@@ -37,6 +37,6 @@ public final class RiseOfLands extends JavaPlugin {
         // Data storage
         reputationManager.saveLandReputation();
         reputationManager.savePlayerReputation();
-        cultureManager.saveCultures();
+        cultureManager.saveCulturesToJson();
     }
 }
