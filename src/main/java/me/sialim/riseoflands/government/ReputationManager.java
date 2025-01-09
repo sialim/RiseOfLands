@@ -6,8 +6,10 @@ import me.angeschossen.lands.api.events.LandTrustPlayerEvent;
 import me.angeschossen.lands.api.events.LandUntrustPlayerEvent;
 import me.angeschossen.lands.api.land.Land;
 import me.sialim.riseoflands.RiseOfLands;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -148,5 +150,13 @@ public class ReputationManager implements Listener {
         Land land = e.getLand();
         landReputation.put(land, 1.0);
         saveLandReputation();
+    }
+
+    @EventHandler public void onPlayerJoin(PlayerJoinEvent e) {
+        Player player = e.getPlayer();
+        if (!playerReputation.containsKey(player.getUniqueId())) {
+            playerReputation.put(player.getUniqueId(), 5);
+            savePlayerReputation();
+        }
     }
 }

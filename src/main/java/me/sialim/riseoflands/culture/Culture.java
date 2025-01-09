@@ -3,13 +3,14 @@ package me.sialim.riseoflands.culture;
 import java.sql.Array;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class Culture {
     private final String name;
-    private final String owner;
-    private final List<String> members;
+    private final UUID owner;
+    private final List<UUID> members;
 
-    public Culture(String name, String owner, List<String> members) {
+    public Culture(String name, UUID owner, List<UUID> members) {
         this.name = name;
         this.owner = owner;
         this.members = new ArrayList<>(members);
@@ -19,21 +20,21 @@ public class Culture {
         return name;
     }
 
-    public String getOwner() {
+    public UUID getOwner() {
         return owner;
     }
 
-    public List<String> getMembers() {
+    public List<UUID> getMembers() {
         return members;
     }
 
-    public void addMember(String playerName) {
+    public void addMember(UUID playerName) {
         if (!members.contains(playerName)) {
             members.add(playerName);
         }
     }
 
-    public void removeMember(String playerName) {
+    public void removeMember(UUID playerName) {
         members.remove(playerName);
     }
 }

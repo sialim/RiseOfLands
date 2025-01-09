@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class CultureCommandExecutor implements TabExecutor {
     private final CultureManager cultureManager;
-    private final Set<String> deleteConfirmations;
+    private final Set<UUID> deleteConfirmations;
 
     public CultureCommandExecutor(CultureManager cultureManager) {
         this.cultureManager = cultureManager;
@@ -38,7 +38,7 @@ public class CultureCommandExecutor implements TabExecutor {
                     player.sendMessage("Please specify a culture name.");
                     return false;
                 }
-                String createResponse = cultureManager.createCulture(player.getUniqueId().toString(), args[1]);
+                String createResponse = cultureManager.createCulture(player.getUniqueId(), args[1]);
                 player.sendMessage(createResponse);
                 break;
             case "join":
@@ -46,12 +46,15 @@ public class CultureCommandExecutor implements TabExecutor {
                     player.sendMessage("Please specify a culture name.");
                     return false;
                 }
-                String joinResponse = cultureManager.joinCulture(player.getName(), args[1]);
+                String joinResponse = cultureManager.joinCulture(player.getUniqueId(), args[1]);
                 player.sendMessage(joinResponse);
                 break;
             case "leave":
-                String leaveResponse = cultureManager.leaveCulture(player.getName());
+                String leaveResponse = cultureManager.leaveCulture(player.getUniqueId());
                 player.sendMessage(leaveResponse);
+                break;
+            case "delete":
+                handleDeleteCommand(player, args);
                 break;
             default:
                 return false;
@@ -61,32 +64,32 @@ public class CultureCommandExecutor implements TabExecutor {
 
     private void handleDeleteCommand(Player player, String[] args) {
         if (args.length == 1) {
-            String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId().toString());
+            String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture == null) {
                 player.sendMessage("You are not part of any culture to delete.");
                 return;
             }
             Culture culture = cultureManager.getCulture(playerCulture);
-            if (!culture.getOwner().equals(player.getUniqueId().toString())) {
+            if (!culture.getOwner().equals(player.getUniqueId())) {
                 player.sendMessage("You are not the owner of this culture.");
                 return;
             }
-            deleteConfirmations.add(player.getName());
+            deleteConfirmations.add(player.getUniqueId());
             player.sendMessage("Type /culture delete confirm to delete your culture.");
         } else if (args.length == 2 && args[1].equalsIgnoreCase("confirm")) {
-            if (!deleteConfirmations.contains(player.getUniqueId().toString())) {
+            if (!deleteConfirmations.contains(player.getUniqueId())) {
                 player.sendMessage("You have not initiated a delete request.");
                 return;
             }
-            String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId().toString());
+            String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture == null) {
                 player.sendMessage("You are not part of any culture to delete.");
                 deleteConfirmations.remove(player.getName());
                 return;
             }
-            String deleteResponse = cultureManager.deleteCulture(player.getUniqueId().toString(), playerCulture);
+            String deleteResponse = cultureManager.deleteCulture(player.getUniqueId(), playerCulture);
             player.sendMessage(deleteResponse);
-            deleteConfirmations.remove(player.getUniqueId().toString());
+            deleteConfirmations.remove(player.getUniqueId());
         } else {
             player.sendMessage("Invalid subcommand. Use /culture delete or /culture delete confirm.");
         }
@@ -106,10 +109,10 @@ public class CultureCommandExecutor implements TabExecutor {
             subcommands.add("join");
             subcommands.add("leave");
 
-            String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId().toString());
+            String playerCulture = cultureManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture != null) {
                 Culture culture = cultureManager.getCulture(playerCulture);
-                if (culture.getOwner().equalsIgnoreCase(player.getUniqueId().toString())) {
+                if (culture.getOwner().equals(player.getUniqueId())) {
                     subcommands.add("delete");
                 }
             }

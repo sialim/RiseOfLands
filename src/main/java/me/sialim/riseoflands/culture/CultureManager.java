@@ -1,32 +1,43 @@
 package me.sialim.riseoflands.culture;
 
+import me.sialim.riseoflands.RiseOfLands;
+
 import java.io.*;
 import java.util.*;
 
 public class CultureManager {
-    private final String filePath;
+    private final File cultureFile;
     private final Map<String, Culture> cultures;
 
-    public CultureManager(String filePath) {
-        this.filePath = filePath;
+    public CultureManager(RiseOfLands plugin) {
+        if (!plugin.getDataFolder().exists()) {
+            plugin.getDataFolder().mkdirs();
+        }
+        this.cultureFile = new File(plugin.getDataFolder(), "cultures.txt");
         this.cultures = new HashMap<>();
-        loadCultures();
+        if (cultureFile.exists()) {
+            loadCultures();
+        } else {
+            try {
+                cultureFile.createNewFile();
+            } catch (IOException e) {
+                System.err.println("Could not create cultures.txt file: " + e.getMessage());
+            }
+        }
     }
 
     private void loadCultures() {
-        File file = new File(filePath);
-        if (!file.exists()) {
-            return;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(cultureFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(":");
                 if (parts.length == 3) {
                     String name = parts[0];
-                    String owner = parts[1];
-                    List<String> members = new ArrayList<>(Arrays.asList(parts[2].split(",")));
+                    UUID owner = UUID.fromString(parts[1]);
+                    List<UUID> members = new ArrayList<>();
+                    for (String memberStr : parts[2].split(",")) {
+                        members.add(UUID.fromString(memberStr));
+                    }
                     cultures.put(name, new Culture(name, owner, members));
                 }
             }
@@ -36,9 +47,10 @@ public class CultureManager {
     }
 
     public void saveCultures() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(cultureFile))) {
             for (Culture culture : cultures.values()) {
-                String members = String.join(",", culture.getMembers());
+                String members = String.join(",",
+                        culture.getMembers().stream().map(UUID::toString).toArray(String[]::new));
                 writer.write(culture.getName() + ":" + culture.getOwner() + ":" + members);
                 writer.newLine();
             }
@@ -47,16 +59,21 @@ public class CultureManager {
         }
     }
 
-    public String createCulture(String playerName, String cultureName) {
-        if (cultures.containsKey(cultureName)) {
-            return "Culture already exists.";
+    public String createCulture(UUID playerName, String cultureName) {
+        for (Culture culture : cultures.values()) {
+            if (culture.getMembers().contains(playerName))
+                return "You are already part of a culture and cannot create a new one.";
         }
+
+        if (cultures.containsKey(cultureName))
+            return "Culture already exists.";
+
         cultures.put(cultureName, new Culture(cultureName, playerName, Collections.singletonList(playerName)));
         saveCultures();
         return "Culture " + cultureName + " created by " + playerName + ".";
     }
 
-    public String joinCulture(String playerName, String cultureName) {
+    public String joinCulture(UUID playerName, String cultureName) {
         Culture culture = cultures.get(cultureName);
         if (culture == null)
             return "Culture does not exist.";
@@ -69,9 +86,11 @@ public class CultureManager {
         return playerName + " joined the culture " + cultureName + ".";
     }
 
-    public String leaveCulture(String playerName) {
+    public String leaveCulture(UUID playerName) {
         for (Culture culture : cultures.values()) {
             if (culture.getMembers().contains(playerName)) {
+                if (culture.getOwner().equals(playerName))
+                    return "You cannot leave your culture because you are the owner. Consider deleting it instead.";
                 culture.removeMember(playerName);
                 saveCultures();
                 return playerName + " left the culture " + culture.getName() + ".";
@@ -80,7 +99,7 @@ public class CultureManager {
         return "Player is not in any culture.";
     }
 
-    private boolean isPlayerInAnyCulture(String playerName) {
+    private boolean isPlayerInAnyCulture(UUID playerName) {
         for (Culture culture : cultures.values()) {
             if (culture.getMembers().contains(playerName)) {
                 return true;
@@ -89,7 +108,7 @@ public class CultureManager {
         return false;
     }
 
-    public String getPlayerCulture(String playerName) {
+    public String getPlayerCulture(UUID playerName) {
         for (Culture culture : getCultureNames().stream().map(this::getCulture).toList()) {
             if (culture.getMembers().contains(playerName))
                 return culture.getName();
@@ -101,7 +120,7 @@ public class CultureManager {
         return cultures.get(cultureName);
     }
 
-    public String deleteCulture(String playerName, String cultureName) {
+    public String deleteCulture(UUID playerName, String cultureName) {
         Culture culture = cultures.get(cultureName);
         if (culture == null)
             return "Culture does not exist.";
