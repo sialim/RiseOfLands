@@ -1,11 +1,11 @@
 package me.sialim.riseoflands.culture.traits;
 
-import me.sialim.riseoflands.culture.CTrait;
+import me.sialim.riseoflands.culture.RTrait;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MagicCTrait extends CTrait {
+public class MagicCTrait extends RTrait {
     public MagicCTrait() {
         super("No Magic", 6);
     }

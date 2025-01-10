@@ -5,9 +5,11 @@ api-version: '1.21'
 author: bermei
 depend: [PlaceholderAPI]
 commands:
-  culture:
+  religion:
     description: Manage your culture
     usage: /<command> <create|join|leave|delete> <culturename>
     aliases:
+      - r
+      - culture
       - cult
       - c

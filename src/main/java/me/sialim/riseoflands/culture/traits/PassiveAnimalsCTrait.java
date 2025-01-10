@@ -1,6 +1,6 @@
 package me.sialim.riseoflands.culture.traits;
 
-import me.sialim.riseoflands.culture.CTrait;
+import me.sialim.riseoflands.culture.RTrait;
 import org.bukkit.entity.EntityType;
 
 import java.util.EnumSet;
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class PassiveAnimalsCTrait extends CTrait {
-    public static final Set<EntityType> restricted = EnumSet.of(
+public class PassiveAnimalsCTrait extends RTrait {
+    public final Set<EntityType> restricted = EnumSet.of(
             EntityType.COW, EntityType.SHEEP, EntityType.CHICKEN, EntityType.PIG, EntityType.RABBIT,
             EntityType.HORSE, EntityType.DONKEY, EntityType.MULE, EntityType.CAT, EntityType.PARROT,
             EntityType.FOX, EntityType.TURTLE, EntityType.AXOLOTL, EntityType.VILLAGER

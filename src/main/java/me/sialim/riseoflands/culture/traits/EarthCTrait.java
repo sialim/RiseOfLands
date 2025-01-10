@@ -1,6 +1,6 @@
 package me.sialim.riseoflands.culture.traits;
 
-import me.sialim.riseoflands.culture.CTrait;
+import me.sialim.riseoflands.culture.RTrait;
 import org.bukkit.Material;
 
 import java.util.Arrays;
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EarthCTrait extends CTrait {
-    private static final List<Material> restricted = Arrays.asList(
+public class EarthCTrait extends RTrait {
+    private final List<Material> restricted = Arrays.asList(
             Material.STONE, Material.GRANITE, Material.ANDESITE,
             Material.DIORITE
     );

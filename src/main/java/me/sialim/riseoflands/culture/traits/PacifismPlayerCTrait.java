@@ -1,13 +1,13 @@
 package me.sialim.riseoflands.culture.traits;
 
-import me.sialim.riseoflands.culture.CTrait;
+import me.sialim.riseoflands.culture.RTrait;
 import org.bukkit.entity.EntityType;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class PacifismPlayerCTrait extends CTrait {
-    public static final EntityType restricted = EntityType.PLAYER;
+public class PacifismPlayerCTrait extends RTrait {
+    public final EntityType restricted = EntityType.PLAYER;
 
     public PacifismPlayerCTrait() {
         super("Pacifism to Players", 3);

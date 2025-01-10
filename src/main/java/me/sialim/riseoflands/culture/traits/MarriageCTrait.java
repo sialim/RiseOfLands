@@ -1,11 +1,11 @@
 package me.sialim.riseoflands.culture.traits;
 
-import me.sialim.riseoflands.culture.CTrait;
+import me.sialim.riseoflands.culture.RTrait;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MarriageCTrait extends CTrait {
+public class MarriageCTrait extends RTrait {
     public MarriageCTrait() {
         super("No Marriage", 2);
     }

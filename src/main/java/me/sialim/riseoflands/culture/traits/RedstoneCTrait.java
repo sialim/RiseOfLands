@@ -1,6 +1,6 @@
 package me.sialim.riseoflands.culture.traits;
 
-import me.sialim.riseoflands.culture.CTrait;
+import me.sialim.riseoflands.culture.RTrait;
 import org.bukkit.Material;
 
 import java.util.Arrays;
@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class RedstoneCTrait extends CTrait {
-    private static final List<Material> restricted = Arrays.asList(
+public class RedstoneCTrait extends RTrait {
+    public final List<Material> restricted = Arrays.asList(
             Material.REDSTONE, Material.REDSTONE_LAMP, Material.LEVER,
             Material.STONE_BUTTON, Material.OAK_BUTTON, Material.SPRUCE_BUTTON,
             Material.BIRCH_BUTTON, Material.JUNGLE_BUTTON, Material.ACACIA_BUTTON,

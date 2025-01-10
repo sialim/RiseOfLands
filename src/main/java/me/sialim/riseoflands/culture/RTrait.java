@@ -1,23 +1,22 @@
 package me.sialim.riseoflands.culture;
 
 import me.sialim.riseoflands.culture.traits.*;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
 import java.util.Map;
 
-public abstract class CTrait {
+public abstract class RTrait {
     protected String name;
     protected int points;
 
-    public CTrait(String name, int points) {
+    public RTrait(String name, int points) {
         this.name = name;
         this.points = points;
     }
 
     public abstract Map<String, Object> toMap();
 
-    public static CTrait fromMap(Map<String, Object> map) {
+    public static RTrait fromMap(Map<String, Object> map) {
         String traitName = (String) map.get("traitName");
 
         // Dynamically instantiate traits based on className
