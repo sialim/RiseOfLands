@@ -1,12 +1,14 @@
 package me.sialim.riseoflands.culture;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import me.sialim.riseoflands.RiseOfLands;
-import me.sialim.riseoflands.culture.traits.CarnivoreCTrait;
-import me.sialim.riseoflands.culture.traits.PassiveAnimalsCTrait;
+import me.sialim.riseoflands.culture.trait_events.SilenceListener;
+import me.sialim.riseoflands.culture.traits.*;
 import me.sialim.riseoflands.government.ReputationManager;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 
 import java.io.*;
 import java.util.*;
@@ -14,13 +16,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ReligionManager {
+    public RiseOfLands plugin;
     private final File religionFile;
     private final File cooldownFile;
     private final Map<String, Religion> religions;
     public Map<UUID, ReligionCooldown> cooldowns;
-    private ReputationManager reputationManager;
+    private final ReputationManager reputationManager;
 
     public ReligionManager(RiseOfLands plugin, ReputationManager reputationManager) {
+        this.plugin = plugin;
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
         }
@@ -51,55 +55,86 @@ public class ReligionManager {
         }
     }
 
-    private void loadCulturesFromJson() {
+    public void loadCulturesFromJson() {
+        // Ensure the religion file exists and is not empty
+        if (!religionFile.exists() || religionFile.length() == 0) {
+            // Log that the file is empty or doesn't exist
+            Bukkit.getLogger().info("The cultures JSON file is empty or does not exist. No cultures loaded.");
+            return;
+        }
+
         try (BufferedReader reader = new BufferedReader(new FileReader(religionFile))) {
-            String line;
-            Gson gson = new Gson();
+            // Create Gson instance with the RTraitAdapter registered
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(RTrait.class, new RTraitAdapter())  // Register RTraitAdapter for RTrait deserialization
+                    .create();
 
-            while ((line = reader.readLine()) != null) {
-                Map<String, Object> cultureData = gson.fromJson(line, Map.class);
-                String cultureName = (String) cultureData.get("name");
-                UUID owner = UUID.fromString((String) cultureData.get("owner"));
-                List<UUID> members = ((List<String>) cultureData.get("members")).stream()
-                        .map(UUID::fromString)
-                        .collect(Collectors.toList());
+            JsonElement culturesJson = JsonParser.parseReader(reader);
 
-                // Deserialize the traits list
-                List<Map<String, Object>> traitsMap = (List<Map<String, Object>>) cultureData.get("traits");
-                List<RTrait> traits = new ArrayList<>();
-                for (Map<String, Object> traitMap : traitsMap) {
-                    traits.add(RTrait.fromMap(traitMap));  // Reconstruct each trait from its map
+            if (culturesJson.isJsonArray()) {
+                JsonArray culturesArray = culturesJson.getAsJsonArray();
+
+                for (JsonElement cultureElement : culturesArray) {
+                    // Deserialize the culture using the Gson with RTraitAdapter
+                    Religion culture = gson.fromJson(cultureElement, Religion.class);
+                    religions.put(culture.getName(), culture);  // Store the culture by name
                 }
-
-                // Create the Religion object
-                religions.put(cultureName, new Religion(cultureName, owner, members, traits));
+            } else {
+                // Log if the JSON is not in an array (unexpected format)
+                Bukkit.getLogger().warning("The cultures JSON file is not in the expected array format.");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException | JsonParseException e) {
+            // Handle errors during reading or parsing
+            Bukkit.getLogger().severe("Error loading cultures from file: " + e.getMessage());
         }
     }
 
     public void loadCooldownsFromFile() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(cooldownFile))) {
-            Gson gson = new Gson();
-            String json = reader.readLine();
+        // Check if the cooldown file exists and is not empty
+        if (!cooldownFile.exists() || cooldownFile.length() == 0) {
+            // Log that the file is empty or doesn't exist
+            Bukkit.getLogger().info("The cooldowns JSON file is empty or does not exist. No cooldowns loaded.");
+            return;
+        }
 
-            if (json != null && !json.isEmpty()) {
-                this.cooldowns = gson.fromJson(json, new TypeToken<Map<UUID, ReligionCooldown>>(){}.getType());
+        try (BufferedReader reader = new BufferedReader(new FileReader(cooldownFile))) {
+            JsonElement jsonElement = JsonParser.parseReader(reader);
+
+            // Ensure the JSON is an object (map-like structure for cooldowns)
+            if (jsonElement.isJsonObject()) {
+                JsonObject cooldownsObject = jsonElement.getAsJsonObject();
+
+                // Create a Gson instance and register necessary adapters
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(RTrait.class, new RTraitAdapter()) // Register RTrait adapter
+                        .registerTypeAdapter(ReligionCooldown.class, new ReligionCooldownAdapter()) // Register ReligionCooldown adapter
+                        .create();
+
+                // Deserialize cooldown data into the cooldowns map
+                for (Map.Entry<String, JsonElement> entry : cooldownsObject.entrySet()) {
+                    UUID playerUUID = UUID.fromString(entry.getKey());
+                    ReligionCooldown cooldown = gson.fromJson(entry.getValue(), ReligionCooldown.class);
+                    cooldowns.put(playerUUID, cooldown);
+                }
+            } else {
+                // Log if the JSON is not an object (unexpected format)
+                Bukkit.getLogger().warning("The cooldowns JSON file is not in the expected object format.");
             }
-            // Ensure cooldowns is initialized if JSON is null/empty
-            if (this.cooldowns == null) {
-                this.cooldowns = new HashMap<>();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            this.cooldowns = new HashMap<>(); // Initialize in case of failure
+        } catch (IOException | JsonParseException e) {
+            // Handle errors during reading or parsing
+            Bukkit.getLogger().severe("Error loading cooldowns from file: " + e.getMessage());
         }
     }
 
     public void saveCulturesToJson() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(religionFile))) {
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(RTrait.class, new RTraitAdapter())  // Register RTraitAdapter
+                    .create();
+
+            // Create an array to hold all cultures
+            JsonArray culturesArray = new JsonArray();
+
             for (Religion culture : religions.values()) {
                 // Convert the traits in the religion to maps
                 List<Map<String, Object>> traitsMap = new ArrayList<>();
@@ -107,18 +142,20 @@ public class ReligionManager {
                     traitsMap.add(trait.toMap());
                 }
 
-                // Create a Map for the culture data and serialize
+                // Create a Map for the culture data
                 Map<String, Object> cultureData = new HashMap<>();
                 cultureData.put("name", culture.getName());
                 cultureData.put("owner", culture.getOwner().toString());
                 cultureData.put("members", culture.getMembers().stream().map(UUID::toString).collect(Collectors.toList()));
                 cultureData.put("traits", traitsMap);  // Add traits data
 
-                // Serialize the culture
-                String json = gson.toJson(cultureData);
-                writer.write(json);
-                writer.newLine();
+                // Serialize to JSON
+                JsonElement cultureJson = gson.toJsonTree(cultureData);
+                culturesArray.add(cultureJson);  // Add the serialized culture to the array
             }
+
+            // Write the entire cultures array to file
+            gson.toJson(culturesArray, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -126,7 +163,9 @@ public class ReligionManager {
 
     public void saveCooldownsToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(cooldownFile))) {
-            Gson gson = new Gson();
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(ReligionCooldown.class, new ReligionCooldownAdapter())  // Register the custom adapter for ReligionCooldown
+                    .create();
 
             String json = gson.toJson(cooldowns);
 
@@ -163,7 +202,11 @@ public class ReligionManager {
         int currentRep = reputationManager.getPlayerReputation(playerName);
         reputationManager.setPlayerReputation(playerName, currentRep - 5);
 
-        List<RTrait> sampleTraits = Arrays.asList(new CarnivoreCTrait(), new PassiveAnimalsCTrait());
+        List<RTrait> sampleTraits = Arrays.asList(
+                new TrueCarnivoreCTrait(),
+                new HostileMobCTrait(EntityType.SLIME),
+                new MagicCTrait(),
+                new SilenceCTrait());
 
         String playerUsername = Bukkit.getPlayer(playerName).getName();
 
@@ -233,10 +276,10 @@ public class ReligionManager {
         return false;
     }
 
-    public String getPlayerCulture(UUID playerName) {
+    public Religion getPlayerCulture(UUID playerName) {
         for (Religion culture : getCultureNames().stream().map(this::getCulture).toList()) {
             if (culture.getMembers().contains(playerName))
-                return culture.getName();
+                return getCulture(culture.getName());
         }
         return null;
     }
@@ -245,12 +288,11 @@ public class ReligionManager {
         return religions.get(cultureName);
     }
 
-    public String deleteCulture(UUID playerName, String cultureName) {
-        Religion culture = religions.get(cultureName);
-        if (culture == null)
+    public String deleteCulture(UUID playerName, Religion cultureName) {
+        if (cultureName == null)
             return "Religion does not exist.";
 
-        if (!culture.getOwner().equals(playerName))
+        if (!cultureName.getOwner().equals(playerName))
             return "You are not the owner of this religion.";
 
         ReligionCooldown cooldown = cooldowns.getOrDefault(playerName, new ReligionCooldown());
@@ -259,7 +301,7 @@ public class ReligionManager {
         cooldowns.put(playerName, cooldown);
         saveCooldownsToFile();
 
-        for (UUID player : culture.getMembers()) {
+        for (UUID player : cultureName.getMembers()) {
             ReligionCooldown playerCooldown = cooldowns.getOrDefault(player, new ReligionCooldown());
             playerCooldown.setCultureLeaveTime(System.currentTimeMillis());
             cooldowns.put(player, playerCooldown);
@@ -281,12 +323,14 @@ public class ReligionManager {
         if (cooldown.getReputationReset()) return;
 
         if (currentTime - cooldown.getCultureDeleteTime() >= TimeUnit.DAYS.toMillis(2)) {
-            reputationManager.setPlayerReputation(playerName, 5);
-            cooldown.setReputationReset(true);
-            cooldowns.put(playerName, cooldown);
-            saveCooldownsToFile();
-            String username = Bukkit.getPlayer(playerName).getName();
-            Bukkit.getLogger().info(username + " has had their reputation reset after deleting their religion.");
+            if (cooldown.getCultureDeleteTime() > 0) {
+                reputationManager.setPlayerReputation(playerName, 5);
+                cooldown.setReputationReset(true);
+                cooldowns.put(playerName, cooldown);
+                saveCooldownsToFile();
+                String username = Bukkit.getPlayer(playerName).getName();
+                Bukkit.getLogger().info(username + " has had their reputation reset after deleting their religion.");
+            }
         }
     }
 
@@ -297,17 +341,48 @@ public class ReligionManager {
         if ((currentTime - cooldown.getForgivenessTimer() >= TimeUnit.DAYS.toMillis(2))
         && currentTime - cooldown.getCultureJoinTime() >= TimeUnit.DAYS.toMillis(1)) {
             reputationManager.setPlayerReputation(playerName, 5);
+            // ^^^
+            // TODO change this to max possible value
             cooldown.setReputationReset(true);
+            cooldown.clearBrokenTraits();
             cooldowns.put(playerName, cooldown);
             saveCooldownsToFile();
             String username = Bukkit.getPlayer(playerName).getName();
-            Bukkit.getLogger().info(username + " has had their reputation reset after deleting their religion.");
+            Player p = Bukkit.getPlayer(playerName);
+            int rep = reputationManager.getPlayerReputation(playerName);
+            p.sendMessage("Your sins have been forgiven. You now have " + rep + " reputation points.");
+            Bukkit.getLogger().info(username + " has been forgiven of their sins. New rep: " + rep);
         }
     }
 
 
     public List<String> getCultureNames() {
         return new ArrayList<>(religions.keySet());
+    }
+
+    public void handleTraitViolation(UUID uuid, RTrait trait, int points) {
+        ReligionManager rm = plugin.religionManager;
+        ReputationManager rpm = plugin.reputationManager;
+        ReligionCooldown cooldown = rm.cooldowns.getOrDefault(uuid, new ReligionCooldown());
+        long currentTime = System.currentTimeMillis();
+        cooldown.setForgivenessTimer(currentTime);
+
+        Set<RTrait> brokenTraits = cooldown.getBrokenTraits();
+        if (brokenTraits == null) {
+            brokenTraits = new HashSet<>();
+            cooldown.setBrokenTraits(brokenTraits);
+        }
+        if (!brokenTraits.contains(trait)) {
+            brokenTraits.add(trait);
+            int currentRep = rpm.getPlayerReputation(uuid);
+            rpm.setPlayerReputation(uuid, currentRep - points);
+            currentRep = rpm.getPlayerReputation(uuid);
+            Bukkit.getPlayer(uuid).sendMessage("You violated a " + trait.getName() +
+                    " tradition! You lost " + points + " reputation. You now have " +
+                    currentRep + " reputation points.");
+            rm.saveCooldownsToFile();
+        }
+        rm.cooldowns.put(uuid, cooldown);
     }
 
 
