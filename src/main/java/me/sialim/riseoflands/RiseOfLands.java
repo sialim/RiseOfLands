@@ -3,7 +3,7 @@ package me.sialim.riseoflands;
 import me.angeschossen.lands.api.LandsIntegration;
 import me.sialim.riseoflands.culture.ReligionCommandExecutor;
 import me.sialim.riseoflands.culture.ReligionManager;
-import me.sialim.riseoflands.culture.trait_events.DietListener;
+import me.sialim.riseoflands.culture.trait_events.*;
 import me.sialim.riseoflands.government.ReputationManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,6 +18,10 @@ public final class RiseOfLands extends JavaPlugin {
     public ReligionCommandExecutor cultureCommandExecutor;
     public ReligionManager religionManager;
     public DietListener dietListener;
+    public HolyMobListener holyMobListener;
+    public SilenceListener silenceListener;
+    public MagicListener magicListener;
+    public HolyBlockListener holyBlockListener;
 
     @Override
     public void onEnable() {
@@ -26,12 +30,22 @@ public final class RiseOfLands extends JavaPlugin {
         religionManager = new ReligionManager(this, reputationManager);
         cultureCommandExecutor = new ReligionCommandExecutor(religionManager);
         dietListener = new DietListener(this);
+        holyMobListener = new HolyMobListener(this);
+        silenceListener = new SilenceListener(this);
+        magicListener = new MagicListener(this);
+        holyBlockListener = new HolyBlockListener(this);
+
+        // PAPI
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI"))
             new RoLPlaceholder(this).register();
 
         // Listener registration
         Bukkit.getPluginManager().registerEvents(reputationManager, this);
         Bukkit.getPluginManager().registerEvents(dietListener, this);
+        Bukkit.getPluginManager().registerEvents(holyMobListener, this);
+        Bukkit.getPluginManager().registerEvents(silenceListener, this);
+        Bukkit.getPluginManager().registerEvents(magicListener, this);
+        Bukkit.getPluginManager().registerEvents(holyBlockListener, this);
 
         // Command registration
         getCommand("religion").setExecutor(cultureCommandExecutor);

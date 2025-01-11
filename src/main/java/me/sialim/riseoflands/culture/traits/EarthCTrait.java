@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class EarthCTrait extends RTrait {
-    private final List<Material> restricted = Arrays.asList(
+    public static final List<Material> restricted = Arrays.asList(
             Material.STONE, Material.GRANITE, Material.ANDESITE,
             Material.DIORITE
     );

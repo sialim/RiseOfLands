@@ -63,13 +63,12 @@ public class ReligionCommandExecutor implements TabExecutor {
 
     private void handleDeleteCommand(Player player, String[] args) {
         if (args.length == 1) {
-            String playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
+            Religion playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture == null) {
                 player.sendMessage("You are not part of any culture to delete.");
                 return;
             }
-            Religion culture = religionManager.getCulture(playerCulture);
-            if (!culture.getOwner().equals(player.getUniqueId())) {
+            if (!playerCulture.getOwner().equals(player.getUniqueId())) {
                 player.sendMessage("You are not the owner of this culture.");
                 return;
             }
@@ -82,7 +81,7 @@ public class ReligionCommandExecutor implements TabExecutor {
                 player.sendMessage("You have not initiated a delete request.");
                 return;
             }
-            String playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
+            Religion playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture == null) {
                 player.sendMessage("You are not part of any culture to delete.");
                 deleteConfirmations.remove(player.getUniqueId());
@@ -110,10 +109,9 @@ public class ReligionCommandExecutor implements TabExecutor {
             subcommands.add("join");
             subcommands.add("leave");
 
-            String playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
+            Religion playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture != null) {
-                Religion culture = religionManager.getCulture(playerCulture);
-                if (culture.getOwner().equals(player.getUniqueId())) {
+                if (playerCulture.getOwner().equals(player.getUniqueId())) {
                     subcommands.add("delete");
                 }
             }

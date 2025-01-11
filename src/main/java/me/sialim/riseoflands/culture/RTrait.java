@@ -4,6 +4,7 @@ import me.sialim.riseoflands.culture.traits.*;
 import org.bukkit.entity.EntityType;
 
 import java.util.Map;
+import java.util.Objects;
 
 public abstract class RTrait {
     protected String name;
@@ -12,6 +13,19 @@ public abstract class RTrait {
     public RTrait(String name, int points) {
         this.name = name;
         this.points = points;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        RTrait other = (RTrait) obj;
+        return Objects.equals(this.getName(), other.getName());  // Compare by trait name or a unique identifier
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);  // Use trait name for hash code generation
     }
 
     public abstract Map<String, Object> toMap();

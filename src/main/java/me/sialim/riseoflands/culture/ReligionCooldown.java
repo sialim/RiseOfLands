@@ -7,7 +7,7 @@ public class ReligionCooldown {
     private long cultureJoinTime = 0;
     private long cultureLeaveTime = 0;
     private long cultureDeleteTime = 0;
-    private Set<RTrait> brokenTraits;
+    private Set<RTrait> brokenTraits = new HashSet<>();
     private long forgivenessTimer = 0;
     private boolean reputationReset = false;
 
@@ -19,7 +19,12 @@ public class ReligionCooldown {
 
     public long getCultureDeleteTime() { return cultureDeleteTime; }
 
-    public Set<RTrait> getBrokenTraits() { return brokenTraits; }
+    public Set<RTrait> getBrokenTraits() {
+        if (brokenTraits == null) {
+            brokenTraits = new HashSet<>();  // Return an empty set instead of null
+        }
+        return brokenTraits;
+    }
 
     public long getForgivenessTimer() { return forgivenessTimer; }
 
@@ -41,7 +46,7 @@ public class ReligionCooldown {
 
     public void clearBrokenTraits() { brokenTraits.clear(); }
 
-    public Map<String, Object> toMap() {
+    @Deprecated public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("cultureCreateTime", cultureCreateTime);
         map.put("cultureJoinTime", cultureJoinTime);
@@ -59,7 +64,7 @@ public class ReligionCooldown {
         return map;
     }
 
-    public static ReligionCooldown fromMap(Map<String, Object> map) {
+    @Deprecated public static ReligionCooldown fromMap(Map<String, Object> map) {
         ReligionCooldown cooldown = new ReligionCooldown();
         cooldown.setCultureCreateTime((long) map.get("cultureCreateTime"));
         cooldown.setCultureJoinTime((long) map.get("cultureJoinTime"));
@@ -71,7 +76,8 @@ public class ReligionCooldown {
         List<Map<String, Object>> brokenTraitsList = (List<Map<String, Object>>) map.get("brokenTraits");
         Set<RTrait> brokenTraitsSet = new HashSet<>();
         for (Map<String, Object> traitMap : brokenTraitsList) {
-            brokenTraitsSet.add(RTrait.fromMap(traitMap));
+            RTrait trait = RTrait.fromMap(traitMap);
+            brokenTraitsSet.add(trait);
         }
         cooldown.setBrokenTraits(brokenTraitsSet);
         return cooldown;

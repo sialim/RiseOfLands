@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class NatureCTrait extends RTrait {
-    public final List<Material> restricted = Arrays.asList(
+    public static final List<Material> restricted = Arrays.asList(
             Material.OAK_LEAVES, Material.SPRUCE_LEAVES, Material.BIRCH_LEAVES,
             Material.JUNGLE_LEAVES, Material.ACACIA_LEAVES, Material.DARK_OAK_LEAVES,
             Material.MANGROVE_LEAVES, Material.CHERRY_LEAVES, Material.NETHER_WART_BLOCK,

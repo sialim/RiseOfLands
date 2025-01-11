@@ -3,7 +3,7 @@ version: '${project.version}'
 main: me.sialim.riseoflands.RiseOfLands
 api-version: '1.21'
 author: bermei
-depend: [PlaceholderAPI]
+depend: [PlaceholderAPI, Lands]
 commands:
   religion:
     description: Manage your culture
