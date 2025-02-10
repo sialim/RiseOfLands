@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ProcreateBeforeMarriageCTrait extends RTrait {
     public ProcreateBeforeMarriageCTrait() {
-        super("No Procreation before Marriage", 3);
+        super("Chaste", 3);
     }
 
     @Override

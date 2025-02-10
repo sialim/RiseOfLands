@@ -16,7 +16,7 @@ public class CarnivoreCTrait extends DietRTrait {
                 Material.BAKED_POTATO, Material.BREAD, Material.MELON_SLICE,
                 Material.SWEET_BERRIES, Material.PUMPKIN_PIE, Material.MUSHROOM_STEW,
                 Material.BEETROOT, Material.BEETROOT_SOUP, Material.CAKE,
-                Material.COOKIE
+                Material.COOKIE, Material.GOLDEN_CARROT, Material.SUSPICIOUS_STEW
         ));
     }
 }

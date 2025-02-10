@@ -4,10 +4,13 @@ import me.sialim.riseoflands.RiseOfLands;
 import me.sialim.riseoflands.culture.RTrait;
 import me.sialim.riseoflands.culture.traits.EarthCTrait;
 import me.sialim.riseoflands.culture.traits.NatureCTrait;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
@@ -17,8 +20,17 @@ public class HolyBlockListener implements Listener {
     @EventHandler public void onBlockBreak(BlockBreakEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
         Material blockType = e.getBlock().getType();
+        ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
 
-        if (plugin.religionManager.getPlayerCulture(uuid) == null) return;
+        if (item != null && item.hasItemMeta() && item.getItemMeta().hasEnchants() &&
+                item.getItemMeta().getEnchants().containsKey(Enchantment.SILK_TOUCH)) {
+            return;
+        }
+
+
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return;
+        }
 
         if(hasEarthTrait(uuid) && isEarthBlock(blockType)) checkForEarth(uuid);
 

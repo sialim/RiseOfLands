@@ -18,7 +18,7 @@ public class TrueCarnivoreCTrait extends DietRTrait {
                 Material.BEETROOT, Material.BEETROOT_SOUP, Material.COOKED_BEEF,
                 Material.COOKED_SALMON, Material.COOKED_COD, Material.COOKED_RABBIT,
                 Material.COOKED_CHICKEN, Material.COOKED_MUTTON, Material.CAKE,
-                Material.COOKIE
+                Material.COOKIE, Material.GOLDEN_CARROT, Material.SUSPICIOUS_STEW
         ));
     }
 }

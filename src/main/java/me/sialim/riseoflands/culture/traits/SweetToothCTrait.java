@@ -18,7 +18,8 @@ public class SweetToothCTrait extends DietRTrait {
                 Material.BEETROOT, Material.BEETROOT_SOUP, Material.COOKED_BEEF,
                 Material.COOKED_SALMON, Material.COOKED_COD, Material.COOKED_RABBIT,
                 Material.COOKED_CHICKEN, Material.COOKED_MUTTON, Material.MUTTON,
-                Material.CHICKEN, Material.RABBIT, Material.COD
+                Material.CHICKEN, Material.RABBIT, Material.COD,
+                Material.SUSPICIOUS_STEW, Material.GOLDEN_CARROT, Material.ROTTEN_FLESH
         ));
     }
 }

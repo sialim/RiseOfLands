@@ -206,7 +206,9 @@ public class ReligionManager {
                 new TrueCarnivoreCTrait(),
                 new HostileMobCTrait(EntityType.SLIME),
                 new MagicCTrait(),
-                new SilenceCTrait());
+                new SilenceCTrait(),
+                new PacifismPlayerMobCTrait()
+        );
 
         String playerUsername = Bukkit.getPlayer(playerName).getName();
 
@@ -334,25 +336,54 @@ public class ReligionManager {
         }
     }
 
+    public String forceForgive(UUID playerName) {
+        if (getPlayerCulture(playerName) == null) return "Player is not in culture.";
+        ReligionCooldown cooldown = cooldowns.getOrDefault(playerName, new ReligionCooldown());
+        long currentTime = System.currentTimeMillis();
+        Player p = Bukkit.getPlayer(playerName);
+
+        int newRep = clampReputation(getPlayerCulture(playerName), 50);
+        reputationManager.setPlayerReputation(playerName, newRep);
+        cooldown.setReputationReset(true);
+        cooldown.clearBrokenTraits();
+        cooldowns.put(playerName, cooldown);
+        saveCooldownsToFile();
+        String username = Bukkit.getPlayer(playerName).getName();
+        int rep = reputationManager.getPlayerReputation(playerName);
+        p.sendMessage("Your sins have been forgiven. You now have " + rep + " reputation points.");
+        Bukkit.getLogger().info(username + " has been forgiven of their sins. New rep: " + rep);
+
+        return p.getName() + " has been forgiven. They now have " + rep + " reputation points.";
+    }
+
     public void forgive(UUID playerName) {
         ReligionCooldown cooldown = cooldowns.getOrDefault(playerName, new ReligionCooldown());
         long currentTime = System.currentTimeMillis();
 
         if ((currentTime - cooldown.getForgivenessTimer() >= TimeUnit.DAYS.toMillis(2))
         && currentTime - cooldown.getCultureJoinTime() >= TimeUnit.DAYS.toMillis(1)) {
-            reputationManager.setPlayerReputation(playerName, 5);
-            // ^^^
-            // TODO change this to max possible value
-            cooldown.setReputationReset(true);
-            cooldown.clearBrokenTraits();
-            cooldowns.put(playerName, cooldown);
-            saveCooldownsToFile();
-            String username = Bukkit.getPlayer(playerName).getName();
-            Player p = Bukkit.getPlayer(playerName);
-            int rep = reputationManager.getPlayerReputation(playerName);
-            p.sendMessage("Your sins have been forgiven. You now have " + rep + " reputation points.");
-            Bukkit.getLogger().info(username + " has been forgiven of their sins. New rep: " + rep);
+            if (cooldown.getForgivenessTimer() > 0) {
+                int newRep = clampReputation(getPlayerCulture(playerName), 50);
+                reputationManager.setPlayerReputation(playerName, newRep);
+                cooldown.setReputationReset(true);
+                cooldown.clearBrokenTraits();
+                cooldowns.put(playerName, cooldown);
+                saveCooldownsToFile();
+                String username = Bukkit.getPlayer(playerName).getName();
+                Player p = Bukkit.getPlayer(playerName);
+                int rep = reputationManager.getPlayerReputation(playerName);
+                p.sendMessage("Your sins have been forgiven. You now have " + rep + " reputation points.");
+                Bukkit.getLogger().info(username + " has been forgiven of their sins. New rep: " + rep);
+            }
         }
+    }
+
+    public int getTraitPoints(Religion religion) {
+        int traitPoints = 0;
+        for (RTrait trait : religion.getTraits()) {
+            traitPoints += trait.getPoints();
+        }
+        return traitPoints;
     }
 
 
@@ -375,7 +406,9 @@ public class ReligionManager {
         if (!brokenTraits.contains(trait)) {
             brokenTraits.add(trait);
             int currentRep = rpm.getPlayerReputation(uuid);
-            rpm.setPlayerReputation(uuid, currentRep - points);
+            int newRep = currentRep - points;
+            int setRep = clampReputation(getPlayerCulture(uuid), newRep);
+            rpm.setPlayerReputation(uuid, setRep);
             currentRep = rpm.getPlayerReputation(uuid);
             Bukkit.getPlayer(uuid).sendMessage("You violated a " + trait.getName() +
                     " tradition! You lost " + points + " reputation. You now have " +
@@ -384,6 +417,22 @@ public class ReligionManager {
         }
         rm.cooldowns.put(uuid, cooldown);
     }
+
+    public int clampReputation(Religion religion, int reputation) {
+        int traitPoints = getTraitPoints(religion);
+
+        int minReputation = 5 - traitPoints;
+        int maxReputation = traitPoints - 4;
+
+        if (reputation < minReputation) {
+            return minReputation;
+        } else if (reputation > maxReputation) {
+            return maxReputation;
+        }
+
+        return reputation;
+    }
+
 
 
     // DEPRECATION DUMP

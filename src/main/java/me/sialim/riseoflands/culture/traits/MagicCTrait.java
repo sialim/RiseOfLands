@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class MagicCTrait extends RTrait {
     public MagicCTrait() {
-        super("No Magic", 6);
+        super("No Magic", 7);
     }
 
     @Override

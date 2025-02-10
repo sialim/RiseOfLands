@@ -79,7 +79,7 @@ public class RTraitAdapter implements JsonDeserializer<RTrait>, JsonSerializer<R
                 case "Pescatarian" -> {
                     return new PescatarianCTrait();
                 }
-                case "No Procreation before Marriage" -> {
+                case "Chaste" -> {
                     return new ProcreateBeforeMarriageCTrait();
                 }
                 case "No Redstone" -> {

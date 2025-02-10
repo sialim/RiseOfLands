@@ -20,7 +20,7 @@ public class CannibalCTrait extends DietRTrait {
                 Material.COOKED_CHICKEN, Material.COOKED_MUTTON, Material.MUTTON,
                 Material.CHICKEN, Material.RABBIT, Material.COD,
                 Material.SALMON, Material.BEEF, Material.CAKE,
-                Material.COOKIE
+                Material.COOKIE, Material.GOLDEN_CARROT, Material.SUSPICIOUS_STEW
         ));
     }
 }

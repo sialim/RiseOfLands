@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class PacifismMobCTrait extends RTrait {
-    public final Set<EntityType> restricted = EnumSet.of(
+    public static final Set<EntityType> restricted = EnumSet.of(
             EntityType.ZOMBIE, EntityType.SKELETON, EntityType.CREEPER, EntityType.SPIDER, EntityType.ENDERMAN,
             EntityType.WITCH, EntityType.WITHER_SKELETON, EntityType.BLAZE, EntityType.GHAST, EntityType.ZOMBIFIED_PIGLIN,
             EntityType.PHANTOM, EntityType.DROWNED, EntityType.STRAY, EntityType.PILLAGER, EntityType.VINDICATOR,

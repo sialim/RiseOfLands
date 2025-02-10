@@ -14,7 +14,7 @@ public class PescatarianCTrait extends DietRTrait {
         super("Pescatarian", 3, Arrays.asList(
                 Material.COOKED_BEEF, Material.COOKED_PORKCHOP, Material.COOKED_MUTTON,
                 Material.COOKED_CHICKEN, Material.COOKED_RABBIT, Material.CHICKEN,
-                Material.PORKCHOP, Material.BEEF, Material.MUTTON
+                Material.PORKCHOP, Material.BEEF, Material.MUTTON, Material.ROTTEN_FLESH
         ));
     }
 }

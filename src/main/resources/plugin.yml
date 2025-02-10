@@ -13,3 +13,6 @@ commands:
       - culture
       - cult
       - c
+  identity:
+    description: Manage your identity
+    usage: /<command> <create|label>

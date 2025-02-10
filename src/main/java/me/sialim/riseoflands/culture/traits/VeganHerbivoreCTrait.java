@@ -18,7 +18,7 @@ public class VeganHerbivoreCTrait extends DietRTrait {
                 Material.PORKCHOP, Material.MUTTON, Material.CHICKEN,
                 Material.RABBIT, Material.ROTTEN_FLESH, Material.COD,
                 Material.COOKED_COD, Material.SALMON, Material.COOKED_SALMON,
-                Material.CAKE
+                Material.CAKE, Material.ROTTEN_FLESH
         ));
     }
 }

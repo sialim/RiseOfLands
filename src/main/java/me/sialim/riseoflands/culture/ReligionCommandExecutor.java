@@ -1,5 +1,6 @@
 package me.sialim.riseoflands.culture;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -54,6 +55,23 @@ public class ReligionCommandExecutor implements TabExecutor {
                 break;
             case "delete":
                 handleDeleteCommand(player, args);
+                break;
+            case "forgive":
+                String response = "";
+                if(!player.isOp()) {
+                    player.sendMessage("Insufficient permissions.");
+                    return false;
+                }
+                if (args.length < 2) {
+                    response = religionManager.forceForgive(player.getUniqueId());
+                } else {
+                    Player p = Bukkit.getPlayer(args[1]);
+                    if (p != null) {
+                        UUID uuid = p.getUniqueId();
+                        response = religionManager.forceForgive(uuid);
+                    }
+                }
+                player.sendMessage(response);
                 break;
             default:
                 return false;
@@ -114,6 +132,8 @@ public class ReligionCommandExecutor implements TabExecutor {
                 if (playerCulture.getOwner().equals(player.getUniqueId())) {
                     subcommands.add("delete");
                 }
+                if(player.isOp())
+                    subcommands.add("forgive");
             }
 
             return subcommands.stream()
