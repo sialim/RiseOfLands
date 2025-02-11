@@ -4,6 +4,7 @@ import me.angeschossen.lands.api.LandsIntegration;
 import me.sialim.riseoflands.culture.ReligionCommandExecutor;
 import me.sialim.riseoflands.culture.ReligionManager;
 import me.sialim.riseoflands.culture.trait_events.*;
+import me.sialim.riseoflands.discord.DiscordGraveyard;
 import me.sialim.riseoflands.government.ReputationManager;
 import me.sialim.riseoflands.roleplay.IdentityManager;
 import me.sialim.riseoflands.roleplay.IdentityPlaceholder;
@@ -17,6 +18,8 @@ public final class RiseOfLands extends JavaPlugin {
     
     public ReputationManager reputationManager;
     public IdentityManager identityManager;
+
+    public DiscordGraveyard discordGraveyard;
     
     public ReligionCommandExecutor cultureCommandExecutor;
     public ReligionManager religionManager;
@@ -34,6 +37,7 @@ public final class RiseOfLands extends JavaPlugin {
         // Initialization
         reputationManager = new ReputationManager(this);
         identityManager = new IdentityManager(this);
+        discordGraveyard = new DiscordGraveyard(identityManager);
         religionManager = new ReligionManager(this, reputationManager);
         cultureCommandExecutor = new ReligionCommandExecutor(religionManager);
         dietListener = new DietListener(this);
@@ -62,6 +66,7 @@ public final class RiseOfLands extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(redstoneListener, this);
         Bukkit.getPluginManager().registerEvents(tameListener, this);
         Bukkit.getPluginManager().registerEvents(pacifismListener, this);
+        Bukkit.getPluginManager().registerEvents(discordGraveyard, this);
         //Bukkit.getPluginManager().registerEvents(, this);
 
         // Command registration

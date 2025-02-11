@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class IdentityManager implements Listener, TabExecutor {
     RiseOfLands plugin;
-    private final Map<UUID, IdentityData> playerDataMap = new HashMap<>();
+    public final Map<UUID, IdentityData> playerDataMap = new HashMap<>();
     private File dataFile;
     private File usedNamesFile;
     private final Gson gson = new Gson();
@@ -108,7 +108,7 @@ public class IdentityManager implements Listener, TabExecutor {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         if (!hasValidIdentity(player)) {
-            player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name>, <middle initial>, <last name>, <suffix>");
+            player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name> <middle initial> <last name> <suffix>");
             player.sendMessage(ChatColor.YELLOW + "NOTE: Keep it appropriate; You'll want to use a last name too.");
             player.sendMessage(ChatColor.YELLOW + "Names cannot be reused.");
             event.setCancelled(true);
@@ -218,7 +218,7 @@ public class IdentityManager implements Listener, TabExecutor {
 
         if (args[0].equalsIgnoreCase("create")) {
             if (args.length < 2) {
-                p.sendMessage(ChatColor.RED + "Usage: /identity create <gender> <first name>, <middle initial>, <last name>, <suffix>");
+                p.sendMessage(ChatColor.RED + "Usage: /identity create <gender> <first name> <middle initial> <last name> <suffix>");
                 return false;
             }
 
