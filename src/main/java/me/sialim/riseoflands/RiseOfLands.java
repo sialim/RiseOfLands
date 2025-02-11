@@ -71,6 +71,7 @@ public final class RiseOfLands extends JavaPlugin {
 
 
         // Data registration
+        saveDefaultConfig();
         identityManager.initializeDataFile();
 
         // Timer registration

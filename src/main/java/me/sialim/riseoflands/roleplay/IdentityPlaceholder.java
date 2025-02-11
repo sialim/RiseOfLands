@@ -28,7 +28,7 @@ public class IdentityPlaceholder extends PlaceholderExpansion {
         UUID uuid = player.getUniqueId();
         if (identifier.equals("name")) return plugin.identityManager.getRoleplayName(uuid);
         if (identifier.equals("gender")) return plugin.identityManager.getGenderDisplay(uuid);
-
+        if (identifier.equals("displaylabel")) return plugin.identityManager.getDisplayLabel(player);
         return null;
     }
 }

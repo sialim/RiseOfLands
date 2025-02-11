@@ -2,6 +2,7 @@ package me.sialim.riseoflands.roleplay;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import me.angeschossen.lands.api.player.LandPlayer;
 import me.sialim.riseoflands.RiseOfLands;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -124,15 +125,21 @@ public class IdentityManager implements Listener, TabExecutor {
         private Gender gender;
         private LabelSetting labelSetting;
         private String roleplayName;
+        private DisplayMode displayMode;
 
-        public IdentityData(Gender gender, LabelSetting labelSetting, String roleplayName) {
+        public IdentityData(Gender gender, LabelSetting labelSetting, String roleplayName, DisplayMode displayMode) {
             this.gender = gender;
             this.labelSetting = labelSetting;
             this.roleplayName = roleplayName;
+            this.displayMode = displayMode;
         }
 
         public void setLabelSetting(LabelSetting labelSetting) {
             this.labelSetting = labelSetting;
+        }
+
+        public void setDisplayMode(DisplayMode displayMode) {
+            this.displayMode = displayMode;
         }
     }
 
@@ -192,6 +199,10 @@ public class IdentityManager implements Listener, TabExecutor {
         FIXED, MALE, FEMALE
     }
 
+    private enum DisplayMode {
+        RANK, STAFF, GENDER, LAND
+    }
+
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player p)) {
             sender.sendMessage("Command can only be executed by players.");
@@ -226,7 +237,7 @@ public class IdentityManager implements Listener, TabExecutor {
                 return false;
             }
 
-            playerDataMap.put(uuid, new IdentityData(gender, LabelSetting.FIXED, roleplayName));
+            playerDataMap.put(uuid, new IdentityData(gender, LabelSetting.FIXED, roleplayName, DisplayMode.RANK));
             p.sendMessage(ChatColor.GREEN + "Your gender has been set to: " + gender.name() +".");
             p.sendMessage("Welcome to the world " + roleplayName);
             savePlayerData();
@@ -239,7 +250,7 @@ public class IdentityManager implements Listener, TabExecutor {
                 return false;
             }
 
-            LabelSetting labelSetting = LabelSetting.FIXED;
+            LabelSetting labelSetting;
             try {
                 labelSetting = LabelSetting.valueOf(args[1].toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -255,7 +266,196 @@ public class IdentityManager implements Listener, TabExecutor {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("displaylabel") && args.length == 2) {
+            if (!playerDataMap.containsKey(uuid)) {
+                p.sendMessage(ChatColor.RED + "You need to create a gender and roleplay name first.");
+                return false;
+            }
+
+            DisplayMode displayMode;
+            try {
+                displayMode = DisplayMode.valueOf(args[1].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                p.sendMessage(ChatColor.RED + "Invalid display mode. Please use 'rank', 'staff', 'land', or 'gender'.");
+                return false;
+            }
+
+            IdentityData data = playerDataMap.get(uuid);
+            data.setDisplayMode(displayMode);
+            playerDataMap.put(uuid, data);
+            p.sendMessage(ChatColor.GREEN + "Your display label mode has been updated to " + displayMode.name() + ".");
+            savePlayerData();
+            return true;
+        }
+
         return false;
+    }
+
+    public String getDisplayLabel(Player player) {
+        UUID uuid = player.getUniqueId();
+        IdentityData data = playerDataMap.get(uuid);
+        if (data == null) return "Unknown";
+
+        switch (data.displayMode) {
+            case RANK:
+                return getRankLabel(getPlayerRank(player), data);
+            case STAFF:
+                return getStaffLabel(getPlayerStaffRank(player), data);
+            case GENDER:
+                return getGenderDisplay(uuid);
+            case LAND:
+                return getLandLabel(player);
+            default:
+                return "Unknown";
+        }
+    }
+
+    public int getPurchasableRankWeight(String rank) {
+        switch (rank.toLowerCase()) {
+            case "supporter":
+                return 0;
+            case "knight":
+                return 1;
+            case "lord":
+                return 2;
+            case "baron":
+                return 3;
+            case "duke":
+                return 4;
+            case "prince":
+                return 5;
+            case "king":
+                return 6;
+            case "peasant":
+            case "default":
+            default:
+                return -1;
+        }
+    }
+
+    public String getPlayerRank(Player player) {
+        String highestRank = "default";
+        int highestWeight = getPurchasableRankWeight(highestRank);
+
+        for (String rank : Arrays.asList("supporter", "knight", "lord", "baron", "duke", "prince", "king", "peasant")) {
+            if (player.hasPermission("group." + rank)) {
+                int weight = getPurchasableRankWeight(rank);
+                if (weight > highestWeight) {
+                    highestRank = rank;
+                    highestWeight = weight;
+                }
+            }
+        }
+
+        return highestRank;
+    }
+
+    public String getPlayerStaffRank(Player player) {
+        String highestStaffRank = null;
+        int highestWeight = 0;
+
+        for (String staffRank : Arrays.asList("builder", "helper", "mod", "god", "dev", "admin")) {
+            if (player.hasPermission("group." + staffRank)) {
+                int weight = getStaffRankWeight(staffRank);
+                if (weight > highestWeight) {
+                    highestStaffRank = staffRank;
+                    highestWeight = weight;
+                }
+            }
+        }
+
+        if (highestStaffRank == null) return getPlayerRank(player);
+
+        return highestStaffRank;
+    }
+
+    public int getStaffRankWeight(String rank) {
+        switch (rank.toLowerCase()) {
+            case "god":
+                return 10;
+            case "dev":
+                return 9;
+            case "admin":
+                return 8;
+            case "mod":
+                return 7;
+            case "helper":
+                return 6;
+            case "builder":
+                return 5;
+            default:
+                return 0;
+        }
+    }
+
+    public boolean hasArtisan(Player player) {
+        return player.hasPermission("group.artisan");
+    }
+
+    public String getRankLabel(String rank, IdentityData identityData) {
+        if (rank == null || identityData == null) return "Unknown";
+
+        String genderString;
+        switch (identityData.labelSetting) {
+            case FIXED:
+                genderString = (identityData.gender == Gender.MALE) ? "male" : "female";
+                break;
+            case MALE:
+                genderString = "male";
+                break;
+            case FEMALE:
+                genderString = "female";
+                break;
+            default:
+                genderString = "Unknown";
+        }
+
+        String path = "ranks." + rank.toLowerCase().replace(" ", "_") + "." + genderString;
+        String label = plugin.getConfig().getString(path, "Unknown");
+
+        if (label.equals("Unknown")) {
+            path = "ranks.default." + genderString;
+            label = plugin.getConfig().getString(path, "Unknown");
+        }
+
+        return ChatColor.translateAlternateColorCodes('&', label);
+    }
+
+    public String getStaffLabel(String staffRank, IdentityData identityData) {
+        if (staffRank == null || identityData == null) return "Unknown";
+
+        String genderString;
+        switch (identityData.labelSetting) {
+            case FIXED:
+                genderString = (identityData.gender == Gender.MALE) ? "male" : "female";
+                break;
+            case MALE:
+                genderString = "male";
+                break;
+            case FEMALE:
+                genderString = "female";
+                break;
+            default:
+                genderString = "Unknown";
+        }
+
+        String path = "staff." + staffRank.toLowerCase().replace(" ", "_") + "." + genderString;
+        String label = plugin.getConfig().getString(path, "Unknown");
+
+        if (label.equals("Unknown")) {
+            path = "staff.default." + genderString;
+            label = plugin.getConfig().getString(path, "Unknown");
+        }
+
+        return ChatColor.translateAlternateColorCodes('&', label);
+    }
+
+    public String getLandLabel(Player p) {
+        LandPlayer lP = plugin.api.getLandPlayer(p.getUniqueId());
+        if (lP == null || lP.getEditLand() == null) {
+            return ChatColor.GRAY + "None";
+        }
+        return plugin.api.getLandPlayer(p.getUniqueId()).getEditLand().getColorName();
     }
 
     @Override public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
@@ -265,6 +465,7 @@ public class IdentityManager implements Listener, TabExecutor {
         if (args.length == 1) {
             suggestions.add("create");
             suggestions.add("label");
+            suggestions.add("displaylabel");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("create")) {
                 suggestions.add("male");
@@ -276,9 +477,16 @@ public class IdentityManager implements Listener, TabExecutor {
                 suggestions.add("male");
                 suggestions.add("female");
             }
+
+            if (args[0].equalsIgnoreCase("displaylabel")) {
+                suggestions.add("rank");
+                suggestions.add("staff");
+                suggestions.add("land");
+                suggestions.add("gender");
+            }
         } else if (args.length >= 3) {
             if (args[0].equalsIgnoreCase("create")) {
-                suggestions.add("<roleplay name");
+                suggestions.add("<roleplay name>");
             }
         }
 

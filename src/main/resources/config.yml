@@ -1,0 +1,39 @@
+ranks:
+  default:
+    male: "&8Peasant"
+    female: "&8Peasant"
+  knight:
+    male: "&7Knight"
+    female: "&7Knight"
+  lord:
+    male: "&4Lord"
+    female: "&4Lady"
+  baron:
+    male: "Baron"
+    female: "Baroness"
+  duke:
+    male: "&9Duke"
+    female: "&cDuchess"
+  prince:
+    male: "&6Prince"
+    female: "&dPrincess"
+  king:
+    male: "&eKing"
+    female: "&5Queen"
+  supporter:
+    male: "&3Supporter"
+    female: "&3Supporter"
+
+staff:
+  admin:
+    male: "Admin"
+    female: "Admin"
+  mod:
+    male: "Mod"
+    female: "Mod"
+  helper:
+    male: "Helper"
+    female: "Helper"
+  god:
+    male: "&eGod"
+    female: "&eGoddess"
