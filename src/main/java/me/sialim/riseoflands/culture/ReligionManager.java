@@ -368,6 +368,7 @@ public class ReligionManager {
                 cooldown.setReputationReset(true);
                 cooldown.clearBrokenTraits();
                 cooldowns.put(playerName, cooldown);
+                cooldown.setForgivenessTimer(0);
                 saveCooldownsToFile();
                 String username = Bukkit.getPlayer(playerName).getName();
                 Player p = Bukkit.getPlayer(playerName);

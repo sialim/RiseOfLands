@@ -105,7 +105,7 @@ public final class RiseOfLands extends JavaPlugin {
 
     public void resetPlayerReputations() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            religionManager.resetReputation(player.getUniqueId());
+            //religionManager.resetReputation(player.getUniqueId());
             religionManager.forgive(player.getUniqueId());
         }
     }

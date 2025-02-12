@@ -9,8 +9,10 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -75,9 +77,11 @@ public class IdentityManager implements Listener, TabExecutor {
                 dataFile.createNewFile();
             }
             try (Reader reader = new FileReader(dataFile)) {
-                Type type = new TypeToken<Map<UUID, IdentityData>>() {}.getType();
-                Map<UUID, IdentityData> data = gson.fromJson(reader, type);
-                if (data != null) playerDataMap.putAll(data);
+                Type type = new TypeToken<Map<String, IdentityData>>() {}.getType();
+                Map<String, IdentityData> data = gson.fromJson(reader, type);
+                if (data != null) {
+                    data.forEach((uuidStr, identityData) -> playerDataMap.put(UUID.fromString(uuidStr), identityData));
+                }
             } catch (IOException e) {
                 e.printStackTrace();;
             }
@@ -96,22 +100,20 @@ public class IdentityManager implements Listener, TabExecutor {
     }
 
     @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-        Player player = event.getEntity();
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         playerDataMap.remove(uuid);
         savePlayerData();
     }
 
-    @EventHandler
-    public void onPlayerMove(PlayerMoveEvent event) {
-        Player player = event.getPlayer();
-        UUID uuid = player.getUniqueId();
-        if (!hasValidIdentity(player)) {
-            player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name> <middle initial> <last name> <suffix>");
-            player.sendMessage(ChatColor.YELLOW + "NOTE: Keep it appropriate; You'll want to use a last name too.");
-            player.sendMessage(ChatColor.YELLOW + "Names cannot be reused.");
-            event.setCancelled(true);
+    @EventHandler public void onPlayerMove(PlayerMoveEvent event) {
+        promptIdentityCreation(event, event.getPlayer());
+    }
+
+    @EventHandler public void onPlayerDamage(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Player p) {
+            promptIdentityCreation(e, p);
         }
     }
 
@@ -119,6 +121,15 @@ public class IdentityManager implements Listener, TabExecutor {
         UUID uuid = player.getUniqueId();
         IdentityData data = playerDataMap.get(uuid);
         return data != null && data.gender != null && data.roleplayName != null;
+    }
+
+    private void promptIdentityCreation(Cancellable event, Player player) {
+        if (!hasValidIdentity(player)) {
+            player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name> <middle initial> <last name> <suffix>");
+            player.sendMessage(ChatColor.YELLOW + "NOTE: Keep it appropriate; You'll want to use a last name too.");
+            player.sendMessage(ChatColor.YELLOW + "Names cannot be reused.");
+            event.setCancelled(true);
+        }
     }
 
     private static class IdentityData {
