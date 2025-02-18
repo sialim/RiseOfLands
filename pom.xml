@@ -107,5 +107,12 @@
             <version>1.28.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>net.advancedplugins.seasons.api</groupId>
+            <artifactId>advancedseasonsapi</artifactId>
+            <version>2.11.6</version>
+            <scope>system</scope>
+            <systemPath>D:/EdgeDownloads/Plugins/AdvancedSeasons-API.jar</systemPath>
+        </dependency>
     </dependencies>
 </project>

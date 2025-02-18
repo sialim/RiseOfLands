@@ -1,3 +1,5 @@
+main-world: "world"
+
 ranks:
   default:
     male: "&8Peasant"

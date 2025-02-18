@@ -56,6 +56,10 @@
       <id>placeholderapi</id>
       <url>https://repo.extendedclip.com/releases/</url>
     </repository>
+    <repository>
+      <id>Scarsz-Nexus</id>
+      <url>https://nexus.scarsz.me/content/groups/public/</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
@@ -81,6 +85,19 @@
       <artifactId>placeholderapi</artifactId>
       <version>2.11.6</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.discordsrv</groupId>
+      <artifactId>discordsrv</artifactId>
+      <version>1.28.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.advancedplugins.seasons.api</groupId>
+      <artifactId>advancedseasonsapi</artifactId>
+      <version>2.11.6</version>
+      <scope>system</scope>
+      <systemPath>D:/EdgeDownloads/Plugins/AdvancedSeasons-API.jar</systemPath>
     </dependency>
   </dependencies>
   <properties>

@@ -2,9 +2,13 @@ package me.sialim.riseoflands.roleplay;
 
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import me.angeschossen.lands.api.player.LandPlayer;
 import me.sialim.riseoflands.RiseOfLands;
+import net.bytebuddy.implementation.bind.annotation.This;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -20,6 +24,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import java.io.*;
 import java.lang.reflect.Type;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -28,7 +33,10 @@ public class IdentityManager implements Listener, TabExecutor {
     public final Map<UUID, IdentityData> playerDataMap = new HashMap<>();
     private File dataFile;
     private File usedNamesFile;
-    private final Gson gson = new Gson();
+    private final Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class, new LocalDateAdapter())
+            .setPrettyPrinting()
+            .create();
     private Set<String> usedNames = new HashSet<>();
 
     public IdentityManager(RiseOfLands plugin) {
@@ -60,6 +68,22 @@ public class IdentityManager implements Listener, TabExecutor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public float rerollMaxSize(UUID uuid) {
+        float newMaxSize;
+        if (isMale(uuid)) {
+            newMaxSize = 0.9f + (float) (Math.random() * (1.15f - 0.9f));
+        } else {
+
+            newMaxSize = 0.9f + (float) (Math.random() * (0.95f - 0.85f));
+        }
+        return newMaxSize;
+    }
+
+    public void setSize(UUID uuid, float size) {
+        Player p = Bukkit.getPlayer(uuid);
+        p.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(size);
     }
 
     private void saveUsedNames() {
@@ -123,6 +147,10 @@ public class IdentityManager implements Listener, TabExecutor {
         return data != null && data.gender != null && data.roleplayName != null;
     }
 
+    public LocalDate getBirthDate(UUID uuid) {
+        return playerDataMap.get(uuid).getBirthDate();
+    }
+
     private void promptIdentityCreation(Cancellable event, Player player) {
         if (!hasValidIdentity(player)) {
             player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name> <middle initial> <last name> <suffix>");
@@ -132,17 +160,34 @@ public class IdentityManager implements Listener, TabExecutor {
         }
     }
 
-    private static class IdentityData {
+    private class IdentityData {
+        private final UUID playerUUID;
         private Gender gender;
         private LabelSetting labelSetting;
         private String roleplayName;
         private DisplayMode displayMode;
+        private final LocalDate birthDate;
+        private final LocalDate deathDate;
+        private float maxHeight;
 
-        public IdentityData(Gender gender, LabelSetting labelSetting, String roleplayName, DisplayMode displayMode) {
+        public IdentityData(UUID playerUUID, Gender gender, LabelSetting labelSetting, String roleplayName, DisplayMode displayMode, LocalDate birthDate) {
+            this.playerUUID = playerUUID;
             this.gender = gender;
             this.labelSetting = labelSetting;
             this.roleplayName = roleplayName;
             this.displayMode = displayMode;
+            this.birthDate = birthDate;
+            this.deathDate = calculateDeathDate(birthDate);
+            generateHeight(gender);
+        }
+
+        private LocalDate calculateDeathDate(LocalDate birthDate) {
+            int lifespan = 40 + (int) (Math.random() * 11);
+            return birthDate.plusYears(lifespan);
+        }
+
+        private void generateHeight(Gender gender) {
+            this.maxHeight = rerollMaxSize(playerUUID);
         }
 
         public void setLabelSetting(LabelSetting labelSetting) {
@@ -151,6 +196,64 @@ public class IdentityManager implements Listener, TabExecutor {
 
         public void setDisplayMode(DisplayMode displayMode) {
             this.displayMode = displayMode;
+        }
+
+        public LocalDate getBirthDate() {
+            return birthDate;
+        }
+
+        public LocalDate getDeathDate() {
+            return deathDate;
+        }
+
+        public float getHeight() { return maxHeight; }
+    }
+
+    public float calculateSize(UUID uuid) {
+        if (playerDataMap.containsKey(uuid)) {
+            LocalDate birthDate = playerDataMap.get(uuid).getBirthDate();
+            LocalDate currentDate = plugin.calendar.worldDates.get(plugin.getConfig().getString("main-world"));
+
+            int currentAge = currentDate.getYear() - birthDate.getYear();
+            int maxAge = 18;
+            float minSize = 0.7f;
+
+            currentAge = Math.min(currentAge, maxAge);
+
+            double size = (playerDataMap.get(uuid).getHeight() - minSize) * Math.sqrt((1.0 / maxAge) * currentAge) + minSize;
+            if (size < 0.7) {
+                size = 0.7;
+            }
+            return (float) size;
+        } else {
+            return 1f;
+        }
+    }
+
+    public String calculateAge(UUID uuid) {
+        LocalDate birthDate = playerDataMap.get(uuid).getBirthDate();
+        LocalDate currentDate = plugin.calendar.worldDates.get(plugin.getConfig().getString("main-world"));
+
+
+        if (birthDate.equals(currentDate)) {
+            return "0 days";
+        }
+
+        int years = currentDate.getYear() - birthDate.getYear();
+        int days = currentDate.getDayOfYear() - birthDate.getDayOfYear();
+
+        if (birthDate.getDayOfYear() > currentDate.getDayOfYear()) {
+            years--;
+            days += birthDate.lengthOfYear();
+        }
+
+        String yearText = years == 1 ? "1 year" : years + " years";
+        String dayText = days == 1 ? "1 day" : days + " days";
+
+        if (years > 0) {
+            return yearText + " " + ((days > 0) ? dayText : "");
+        } else {
+            return days > 0 ? dayText : "Born today";
         }
     }
 
@@ -175,6 +278,20 @@ public class IdentityManager implements Listener, TabExecutor {
         }
 
         return formattedName.toString().trim();
+    }
+
+    public IdentityData createIdentity(UUID playerUUID, Gender gender, LabelSetting labelSetting, String roleplayName, DisplayMode displayMode, LocalDate currentDate) {
+        IdentityData identity = new IdentityData(playerUUID, gender, labelSetting, roleplayName, displayMode, currentDate);
+        playerDataMap.put(playerUUID, identity);
+        return identity;
+    }
+
+    public IdentityData getIdentity(UUID playerUUID) {
+        return playerDataMap.get(playerUUID);
+    }
+
+    public boolean hasIdentity(UUID playerUUID) {
+        return playerDataMap.containsKey(playerUUID);
     }
 
     public String getRoleplayName(UUID uuid) {
@@ -228,12 +345,12 @@ public class IdentityManager implements Listener, TabExecutor {
         }
 
         if (args[0].equalsIgnoreCase("create")) {
-            if (args.length < 2) {
+            if (args.length < 3) {
                 p.sendMessage(ChatColor.RED + "Usage: /identity create <gender> <first name> <middle initial> <last name> <suffix>");
                 return false;
             }
 
-            Gender gender = null;
+            Gender gender;
             try {
                 gender = Gender.valueOf(args[1].toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -248,7 +365,9 @@ public class IdentityManager implements Listener, TabExecutor {
                 return false;
             }
 
-            playerDataMap.put(uuid, new IdentityData(gender, LabelSetting.FIXED, roleplayName, DisplayMode.RANK));
+            LocalDate currentDate = plugin.calendar.worldDates.getOrDefault(p.getWorld().getName(), LocalDate.of(476, 1, 1));
+            LocalDate birthDate = currentDate.minusYears(16);
+            playerDataMap.put(uuid, new IdentityData(p.getUniqueId(), gender, LabelSetting.FIXED, roleplayName, DisplayMode.RANK, birthDate));
             p.sendMessage(ChatColor.GREEN + "Your gender has been set to: " + gender.name() +".");
             p.sendMessage("Welcome to the world " + roleplayName);
             savePlayerData();
@@ -467,6 +586,10 @@ public class IdentityManager implements Listener, TabExecutor {
             return ChatColor.GRAY + "None";
         }
         return plugin.api.getLandPlayer(p.getUniqueId()).getEditLand().getColorName();
+    }
+
+    public boolean isMale(UUID uuid) {
+        return getGender(uuid) == Gender.MALE;
     }
 
     @Override public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {

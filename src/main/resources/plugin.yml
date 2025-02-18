@@ -3,7 +3,7 @@ version: '${project.version}'
 main: me.sialim.riseoflands.RiseOfLands
 api-version: '1.21'
 author: bermei
-depend: [PlaceholderAPI, Lands]
+depend: [PlaceholderAPI, Lands, AdvancedSeasons]
 commands:
   religion:
     description: Manage your culture
@@ -16,3 +16,15 @@ commands:
   identity:
     description: Manage your identity
     usage: /<command> <create|label>
+  setdate:
+    usage: /setdate YYYY-MM-DD
+  pause:
+    usage: /pause
+  resume:
+    usage: /resume
+  date:
+    description: "Set date format or time format."
+    usage: "/date format [format] or /date time [12|24]"
+  temperature:
+    description: "Set temperature preference."
+    usage: "/temperature set [celsius|fahrenheit]"
