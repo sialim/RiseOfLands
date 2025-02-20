@@ -1,5 +1,6 @@
 package me.sialim.riseoflands.culture;
 
+import com.google.common.eventbus.SubscriberExceptionContext;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -73,6 +74,11 @@ public class ReligionCommandExecutor implements TabExecutor {
                 }
                 player.sendMessage(response);
                 break;
+            case "mandate":
+                String mandateResponse = "";
+                mandateResponse = religionManager.mandateCulture(player.getUniqueId());
+                player.sendMessage(mandateResponse);
+                break;
             default:
                 return false;
         }
@@ -126,6 +132,7 @@ public class ReligionCommandExecutor implements TabExecutor {
             subcommands.add("create");
             subcommands.add("join");
             subcommands.add("leave");
+            subcommands.add("mandate");
 
             Religion playerCulture = religionManager.getPlayerCulture(player.getUniqueId());
             if (playerCulture != null) {

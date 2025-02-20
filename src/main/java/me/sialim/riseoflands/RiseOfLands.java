@@ -12,12 +12,15 @@ import me.sialim.riseoflands.government.ReputationManager;
 import me.sialim.riseoflands.roleplay.IdentityManager;
 import me.sialim.riseoflands.roleplay.IdentityPlaceholder;
 import net.advancedplugins.seasons.api.AdvancedSeasonsAPI;
+import net.luckperms.api.LuckPerms;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public final class RiseOfLands extends JavaPlugin {
+    public LuckPerms lp;
     public LandsIntegration api;
     public AdvancedSeasonsAPI asAPI;
     
@@ -65,6 +68,12 @@ public final class RiseOfLands extends JavaPlugin {
             new CalendarPlaceholder(this).register();
         }
 
+        // LuckPerms
+        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+        if (provider != null) {
+            lp = provider.getProvider();
+        }
+
         // Listener registration
         Bukkit.getPluginManager().registerEvents(reputationManager, this);
         Bukkit.getPluginManager().registerEvents(identityManager, this);
@@ -109,6 +118,7 @@ public final class RiseOfLands extends JavaPlugin {
         identityManager.savePlayerData();
         religionManager.saveCulturesToJson();
         religionManager.saveCooldownsToFile();
+        religionManager.saveLandReligions();
     }
 
     public void minuteTimer() {

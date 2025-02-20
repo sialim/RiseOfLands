@@ -2,6 +2,8 @@ package me.sialim.riseoflands.culture;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
+import me.angeschossen.lands.api.land.Land;
+import me.angeschossen.lands.api.player.LandPlayer;
 import me.sialim.riseoflands.RiseOfLands;
 import me.sialim.riseoflands.culture.trait_events.SilenceListener;
 import me.sialim.riseoflands.culture.traits.*;
@@ -11,6 +13,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -19,6 +22,8 @@ public class ReligionManager {
     public RiseOfLands plugin;
     private final File religionFile;
     private final File cooldownFile;
+    private final File landReligionFile;
+    private final Map<Land, String> landReligions;
     private final Map<String, Religion> religions;
     public Map<UUID, ReligionCooldown> cooldowns;
     private final ReputationManager reputationManager;
@@ -31,6 +36,8 @@ public class ReligionManager {
         this.reputationManager = reputationManager;
         this.religionFile = new File(plugin.getDataFolder(), "cultures.json");
         this.cooldownFile = new File(plugin.getDataFolder(), "cooldowns.json");
+        this.landReligionFile= new File(plugin.getDataFolder(), "land_religions.txt");
+        this.landReligions = new HashMap<>();
         this.religions = new HashMap<>();
         this.cooldowns = new HashMap<>();
 
@@ -51,6 +58,15 @@ public class ReligionManager {
                 cooldownFile.createNewFile();
             } catch (IOException e) {
                 System.err.println("Could not create cooldowns.json file: " + e.getMessage());
+            }
+        }
+        if (landReligionFile.exists()) {
+            loadLandReligions();
+        } else {
+            try {
+                landReligionFile.createNewFile();
+            } catch (IOException e) {
+                System.err.println("Could not create land_religions.txt file: " + e.getMessage());
             }
         }
     }
@@ -174,6 +190,32 @@ public class ReligionManager {
             e.printStackTrace();
         }
     }
+
+    public void loadLandReligions() {
+        if (!landReligionFile.exists()) return;
+        try {
+            for (String line : Files.readAllLines(landReligionFile.toPath())) {
+                String[] parts = line.split(",", 2);
+                if (parts.length == 2) {
+                    landReligions.put(plugin.api.getLandByName(parts[0]), parts[1]);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void saveLandReligions() {
+        if (!landReligionFile.exists()) return;
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(landReligionFile))) {
+            for (Map.Entry<Land, String> entry : landReligions.entrySet()) {
+                writer.write(entry.getKey().getName() + "," + entry.getValue());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     public String createCulture(UUID playerName, String cultureName) {
         for (Religion culture : religions.values()) {
             if (culture.getMembers().contains(playerName))
@@ -269,7 +311,21 @@ public class ReligionManager {
         return "Player is not in any religion.";
     }
 
-    private boolean isPlayerInAnyCulture(UUID playerName) {
+    public String mandateCulture(UUID playerName) {
+        if (!isPlayerInAnyCulture(playerName)) return "Player is not in any religion.";
+        LandPlayer player = plugin.api.getLandPlayer(playerName);
+        if (player.getEditLand() == null) return "Player is not in any land.";
+        if (player.getOwningLand() == null) return "Player does not own any land.";
+        if (player.getOwningLand().equals(player.getEditLand())) {
+            landReligions.put(player.getOwningLand(), getPlayerCulture(playerName).getName());
+            saveLandReligions();
+            return "Your land, " + player.getOwningLand().getName() + ", is now mandating the religion: "
+                    + getPlayerCulture(playerName).getName() + ".";
+        }
+        return "An error occurred running this command. Contact the server's developers.";
+    }
+
+    public boolean isPlayerInAnyCulture(UUID playerName) {
         for (Religion culture : religions.values()) {
             if (culture.getMembers().contains(playerName)) {
                 return true;

@@ -35,6 +35,12 @@ public class RoLPlaceholder extends PlaceholderExpansion {
             return land != null ? String.valueOf(plugin.reputationManager.getLandReputation(land)) : "None";
         }
 
+        if (identifier.equals("land_true_rep")) {
+            LandPlayer landPlayer = plugin.api.getLandPlayer(uuid);
+            Land land = landPlayer.getEditLand();
+            return land != null ? String.valueOf(plugin.reputationManager.getLandTrueReputation(land)) : "None";
+        }
+
         return null;
     }
 }

@@ -4,6 +4,4 @@ public class War {
     public enum WarType {
         STANDARD, CIVIL, WORLD
     }
-
-
 }

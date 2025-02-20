@@ -98,7 +98,7 @@ public class CalendarPlaceholder extends PlaceholderExpansion {
                 return "Invalid date format pattern";
             }
         } else if (identifier.equals("season")) {
-            String season = plugin.asAPI.getSeason(player.getWorld());
+            String season = plugin.asAPI.getSeason(Bukkit.getWorld(plugin.getConfig().getString("main-world")));
             String[] message = season.split(" ");
             return Character.toUpperCase(message[0].charAt(0)) + message[0].substring(1).toLowerCase();
         }

@@ -6,6 +6,11 @@ import me.angeschossen.lands.api.events.LandTrustPlayerEvent;
 import me.angeschossen.lands.api.events.LandUntrustPlayerEvent;
 import me.angeschossen.lands.api.land.Land;
 import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.culture.ReligionManager;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.model.user.User;
+import net.luckperms.api.node.Node;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -97,7 +102,7 @@ public class ReputationManager implements Listener {
                 String landName = entry.getKey().getName();
                 double reputation = entry.getValue();
                 writer.write(landName + "," + reputation);
-                writer.newLine();;
+                writer.newLine();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -105,7 +110,7 @@ public class ReputationManager implements Listener {
     }
 
     public int getPlayerReputation(UUID uuid) {
-        return playerReputation.getOrDefault(uuid, 0);
+        return playerReputation.get(uuid);
     }
 
     public void setPlayerReputation(UUID uuid, int reputation) {
@@ -144,6 +149,23 @@ public class ReputationManager implements Listener {
     public void resetLandReputation(Land land) {
         landReputation.remove(land);
         saveLandReputation();
+    }
+
+    public void setMaxChunks(Player p, int maxChunks) {
+        LuckPerms api = plugin.lp;
+        User user = api.getUserManager().getUser(p.getUniqueId());
+
+        if (user == null) {
+            plugin.getLogger().warning("LuckPerms user not found for " + p.getName());
+            return;
+        }
+
+        user.getNodes().stream()
+                .filter(node -> node.getKey().startsWith("lands.chunks.max"))
+                .forEach(node -> user.data().remove(node));
+
+        Node newPermission = Node.builder("lands.chunk.max" + maxChunks).build();
+        user.data().add(newPermission);
     }
 
     @EventHandler public void onLandCreate(LandCreateEvent e) {
