@@ -34,7 +34,7 @@ public class DiscordGraveyard implements Listener {
             return;
         }
 
-        if (discordSRV.getJda().getTextChannelById("1264435880400126075") == null) {
+        if (discordSRV.getJda().getTextChannelById("1292249294723743865") == null) {
             System.out.println("Error: Bot cannot access the Discord channel!");
             return;
         }
@@ -50,9 +50,10 @@ public class DiscordGraveyard implements Listener {
 
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Here lies, " + playerName + " (" + p.getName() + ")").setColor(0xFF0000)
-                        .setDescription(getDeathCause(p) + " (" + birthdate + " - " + deathdate + ") (Season 0)");
+                        .setDescription(birthdate + " - " + deathdate + " (Season 0)"
+                + "\n" + getDeathCause(p));
 
-        discordSRV.getJda().getTextChannelById("1264435880400126075").sendMessageEmbeds(embed.build()).queue();
+        discordSRV.getJda().getTextChannelById("1292249294723743865").sendMessageEmbeds(embed.build()).queue();
     }
 
     private String getDeathCause(Player player) {
@@ -62,7 +63,7 @@ public class DiscordGraveyard implements Listener {
         EntityDamageEvent.DamageCause cause = lastDamage.getCause();
         if (cause == EntityDamageEvent.DamageCause.ENTITY_ATTACK || cause == EntityDamageEvent.DamageCause.ENTITY_SWEEP_ATTACK) {
             if (player.getKiller() != null) {
-                return "Murdered by " + player.getKiller().getName() + ".";
+                return "Murdered by " + plugin.identityManager.getRoleplayName(player.getKiller().getUniqueId()) + " (" + player.getKiller().getName() + ").";
             }
 
             if (lastDamage instanceof org.bukkit.event.entity.EntityDamageByEntityEvent entityEvent) {

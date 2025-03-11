@@ -3,6 +3,7 @@ package me.sialim.riseoflands.calendar;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.sialim.riseoflands.RiseOfLandsMain;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -43,6 +44,7 @@ public class CalendarPlaceholder extends PlaceholderExpansion {
 
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
+        String fallback = ChatColor.GRAY + "None";
         PlayerDataManager.PlayerPreferences preferences = plugin.calendar.playerDataManager.getPlayerPreferences(player.getUniqueId());
         if (identifier.startsWith("formatted_date_world_")) {
             String worldName = identifier.substring("formatted_date_world_".length());
@@ -61,6 +63,7 @@ public class CalendarPlaceholder extends PlaceholderExpansion {
         } else if (identifier.equals("temperature")) {
             int temperature = plugin.asAPI.getTemperature(player);
             String temperatureUnit = preferences.getTemperatureUnit();
+            Bukkit.getLogger().info("Fetched temperature: " + temperature + " for player: " + player.getName());
             if ("fahrenheit".equalsIgnoreCase(temperatureUnit)) {
                 temperature = (temperature * 9 / 5) + 32;
             }
@@ -102,6 +105,6 @@ public class CalendarPlaceholder extends PlaceholderExpansion {
             String[] message = season.split(" ");
             return Character.toUpperCase(message[0].charAt(0)) + message[0].substring(1).toLowerCase();
         }
-        return null;
+        return fallback;
     }
 }

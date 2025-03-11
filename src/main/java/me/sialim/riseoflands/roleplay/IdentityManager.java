@@ -171,7 +171,7 @@ public class IdentityManager implements Listener, TabExecutor {
         if (!hasValidIdentity(player) && player.isOnline()) {
             player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name> <middle initial> <last name> <suffix>");
             player.sendMessage(ChatColor.YELLOW + "NOTE: Keep it appropriate; You'll want to use a last name too.");
-            player.sendMessage(ChatColor.YELLOW + "Names cannot be reused.");
+            //player.sendMessage(ChatColor.YELLOW + "Names cannot be reused.");
             event.setCancelled(event instanceof EntityDamageEvent);
             //event.setCancelled(true);
         }
@@ -614,7 +614,7 @@ public class IdentityManager implements Listener, TabExecutor {
 
     public String getLandLabel(Player p) {
         LandPlayer lP = plugin.api.getLandPlayer(p.getUniqueId());
-        if (lP == null || lP.getEditLand() == null) {
+        if (lP == null || lP.getEditLand(false) == null) {
             return ChatColor.GRAY + "None";
         }
         return plugin.api.getLandPlayer(p.getUniqueId()).getEditLand().getColorName();

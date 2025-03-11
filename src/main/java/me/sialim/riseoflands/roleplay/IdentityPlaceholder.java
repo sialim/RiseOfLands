@@ -2,6 +2,7 @@ package me.sialim.riseoflands.roleplay;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.sialim.riseoflands.RiseOfLandsMain;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,6 +24,8 @@ public class IdentityPlaceholder extends PlaceholderExpansion {
 
     @Override public String onPlaceholderRequest(Player player, String identifier) {
         if (player == null) return "";
+        String fallback = ChatColor.GRAY + "None";
+        if (!plugin.identityManager.hasIdentity(player.getUniqueId())) return fallback;
         UUID uuid = player.getUniqueId();
         if (identifier.equals("name")) return plugin.identityManager.getRoleplayName(uuid);
         if (identifier.equals("gender")) return plugin.identityManager.getGenderDisplay(uuid);
