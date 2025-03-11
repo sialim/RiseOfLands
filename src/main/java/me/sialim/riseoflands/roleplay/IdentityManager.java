@@ -4,8 +4,10 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import me.angeschossen.lands.api.player.LandPlayer;
-import me.sialim.riseoflands.RiseOfLands;
-import net.bytebuddy.implementation.bind.annotation.This;
+import me.sialim.riseoflands.RiseOfLandsMain;
+import net.luckperms.api.LuckPerms;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
@@ -17,7 +19,6 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -26,10 +27,10 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.util.*;
-import java.util.regex.Pattern;
 
 public class IdentityManager implements Listener, TabExecutor {
-    RiseOfLands plugin;
+    RiseOfLandsMain plugin;
+    LuckPerms lp;
     public final Map<UUID, IdentityData> playerDataMap = new HashMap<>();
     private File dataFile;
     private File usedNamesFile;
@@ -39,8 +40,9 @@ public class IdentityManager implements Listener, TabExecutor {
             .create();
     private Set<String> usedNames = new HashSet<>();
 
-    public IdentityManager(RiseOfLands plugin) {
+    public IdentityManager(RiseOfLandsMain plugin) {
         this.plugin = plugin;
+        this.lp = LuckPermsProvider.get();
     }
 
     public void initializeDataFile() {
@@ -131,6 +133,20 @@ public class IdentityManager implements Listener, TabExecutor {
         savePlayerData();
     }
 
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (hasIdentity(player.getUniqueId())) return;
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (player.isOnline()) {
+                player.setAllowFlight(false);
+                player.setFlying(false);
+            }
+        }, 100L);
+    }
+
     @EventHandler public void onPlayerMove(PlayerMoveEvent event) {
         promptIdentityCreation(event, event.getPlayer());
     }
@@ -152,11 +168,12 @@ public class IdentityManager implements Listener, TabExecutor {
     }
 
     private void promptIdentityCreation(Cancellable event, Player player) {
-        if (!hasValidIdentity(player)) {
+        if (!hasValidIdentity(player) && player.isOnline()) {
             player.sendMessage(ChatColor.YELLOW + "/identity create <gender> <first name> <middle initial> <last name> <suffix>");
             player.sendMessage(ChatColor.YELLOW + "NOTE: Keep it appropriate; You'll want to use a last name too.");
             player.sendMessage(ChatColor.YELLOW + "Names cannot be reused.");
-            event.setCancelled(true);
+            event.setCancelled(event instanceof EntityDamageEvent);
+            //event.setCancelled(true);
         }
     }
 
@@ -365,7 +382,7 @@ public class IdentityManager implements Listener, TabExecutor {
                 return false;
             }
 
-            LocalDate currentDate = plugin.calendar.worldDates.getOrDefault(p.getWorld().getName(), LocalDate.of(476, 1, 1));
+            LocalDate currentDate = plugin.calendar.worldDates.getOrDefault(plugin.getConfig().getString("main-world"), LocalDate.of(476, 1, 1));
             LocalDate birthDate = currentDate.minusYears(16);
             playerDataMap.put(uuid, new IdentityData(p.getUniqueId(), gender, LabelSetting.FIXED, roleplayName, DisplayMode.RANK, birthDate));
             p.sendMessage(ChatColor.GREEN + "Your gender has been set to: " + gender.name() +".");
@@ -467,8 +484,18 @@ public class IdentityManager implements Listener, TabExecutor {
         String highestRank = "default";
         int highestWeight = getPurchasableRankWeight(highestRank);
 
-        for (String rank : Arrays.asList("supporter", "knight", "lord", "baron", "duke", "prince", "king", "peasant")) {
-            if (player.hasPermission("group." + rank)) {
+        // Get the player user object
+        User user = lp.getPlayerAdapter(Player.class).getUser(player);
+
+        // Check the primary group of the player
+        String primaryGroup = user.getPrimaryGroup();
+
+        // Define the rank hierarchy
+        List<String> rankOrder = Arrays.asList("supporter", "knight", "lord", "baron", "duke", "prince", "king", "peasant");
+
+        // Loop through the ranks and check the weight
+        for (String rank : rankOrder) {
+            if (primaryGroup.equals(rank)) {
                 int weight = getPurchasableRankWeight(rank);
                 if (weight > highestWeight) {
                     highestRank = rank;
@@ -483,9 +510,15 @@ public class IdentityManager implements Listener, TabExecutor {
     public String getPlayerStaffRank(Player player) {
         String highestStaffRank = null;
         int highestWeight = 0;
+        User user = lp.getPlayerAdapter(Player.class).getUser(player);
 
-        for (String staffRank : Arrays.asList("builder", "helper", "mod", "god", "dev", "admin")) {
-            if (player.hasPermission("group." + staffRank)) {
+        String primaryGroup = user.getPrimaryGroup();
+
+        // Define the staff rank hierarchy
+        List<String> staffRankOrder = Arrays.asList("builder", "helper", "mod", "god", "dev", "admin");
+
+        for (String staffRank : staffRankOrder) {
+            if (primaryGroup.equals(staffRank)) {
                 int weight = getStaffRankWeight(staffRank);
                 if (weight > highestWeight) {
                     highestStaffRank = staffRank;
@@ -498,7 +531,6 @@ public class IdentityManager implements Listener, TabExecutor {
 
         return highestStaffRank;
     }
-
     public int getStaffRankWeight(String rank) {
         switch (rank.toLowerCase()) {
             case "god":

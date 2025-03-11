@@ -1,7 +1,6 @@
 package me.sialim.riseoflands.calendar;
 
-import me.sialim.riseoflands.RiseOfLands;
-import me.sialim.riseoflands.roleplay.IdentityManager;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -31,7 +30,7 @@ import java.util.*;
 public class GameCalendar implements Listener, CommandExecutor, TabCompleter {
     public Map<String, LocalDate> worldDates = new HashMap<>();
     public Map<String, Long> lastDayTicks = new HashMap<>();
-    RiseOfLands plugin;
+    RiseOfLandsMain plugin;
 
     public PlayerDataManager playerDataManager;
 
@@ -41,7 +40,7 @@ public class GameCalendar implements Listener, CommandExecutor, TabCompleter {
 
     private boolean isPaused = false;
 
-    public GameCalendar(RiseOfLands plugin, PlayerDataManager playerDataManager) {
+    public GameCalendar(RiseOfLandsMain plugin, PlayerDataManager playerDataManager) {
         this.plugin = plugin;
         this.playerDataManager = playerDataManager;
         loadWorldData();
@@ -67,9 +66,7 @@ public class GameCalendar implements Listener, CommandExecutor, TabCompleter {
             @Override
             public void run() {
                 if (!isPaused) {
-                    for (World world : Bukkit.getWorlds()) {
-                        updateSeason(world);
-                    }
+                    updateSeason(Bukkit.getWorld(plugin.getConfig().getString("main-world")));
                 }
             }
         }.runTaskTimer(plugin, 0L, 1200L);
@@ -210,7 +207,7 @@ public class GameCalendar implements Listener, CommandExecutor, TabCompleter {
             return;
         }
 
-        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command + " " + world.getName());
+        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command + " " + plugin.getConfig().getString("main-world"));
     }
 
     @EventHandler
@@ -253,6 +250,15 @@ public class GameCalendar implements Listener, CommandExecutor, TabCompleter {
 
     public String getFormattedDate(World world) {
         LocalDate date = worldDates.getOrDefault(world.getName(), LocalDate.of(476, 1, 1));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM");
+        String month = date.format(formatter);
+        String dayWithSuffix = getDayWithSuffix(date.getDayOfMonth());
+        int year = date.getYear();
+        return month + " " + dayWithSuffix + ", " + year;
+    }
+
+    public String getFormattedDate(LocalDate date) {
+        if (date == null) return "Unknown date";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM");
         String month = date.format(formatter);
         String dayWithSuffix = getDayWithSuffix(date.getDayOfMonth());

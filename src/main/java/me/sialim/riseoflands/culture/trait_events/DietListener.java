@@ -1,25 +1,21 @@
 package me.sialim.riseoflands.culture.trait_events;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.*;
-import me.sialim.riseoflands.government.ReputationManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 public class DietListener implements Listener {
 
-    public RiseOfLands plugin;
+    public RiseOfLandsMain plugin;
 
-    public DietListener(RiseOfLands plugin) { this.plugin = plugin; }
+    public DietListener(RiseOfLandsMain plugin) { this.plugin = plugin; }
     @EventHandler public void onPlayerEat(PlayerItemConsumeEvent e) {
         Player player = e.getPlayer();
         UUID uuid = player.getUniqueId();

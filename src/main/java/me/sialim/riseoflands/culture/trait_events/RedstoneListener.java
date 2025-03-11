@@ -1,8 +1,7 @@
 package me.sialim.riseoflands.culture.trait_events;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.RTrait;
-import me.sialim.riseoflands.culture.traits.EarthCTrait;
 import me.sialim.riseoflands.culture.traits.RedstoneCTrait;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
@@ -14,9 +13,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import java.util.UUID;
 
 public class RedstoneListener implements Listener {
-    public RiseOfLands plugin;
+    public RiseOfLandsMain plugin;
 
-    public RedstoneListener(RiseOfLands plugin) { this.plugin = plugin; }
+    public RedstoneListener(RiseOfLandsMain plugin) { this.plugin = plugin; }
 
     @EventHandler public void onBlockPlace(BlockPlaceEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
@@ -40,6 +39,9 @@ public class RedstoneListener implements Listener {
     }
 
     private boolean hasRedstoneTrait(UUID uuid) {
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return false;
+        }
         return plugin.religionManager.getPlayerCulture(uuid).getTraits()
                 .stream().anyMatch(trait -> trait.getName().equals("No Redstone"));
     }

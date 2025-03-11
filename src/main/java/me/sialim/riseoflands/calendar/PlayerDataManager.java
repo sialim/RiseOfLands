@@ -1,6 +1,6 @@
 package me.sialim.riseoflands.calendar;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -14,10 +14,10 @@ import java.util.Map;
 import java.util.UUID;
 
 public class PlayerDataManager {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
     private final File dataFile;
 
-    public PlayerDataManager (RiseOfLands plugin) {
+    public PlayerDataManager (RiseOfLandsMain plugin) {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "playerData.txt");
         loadPlayerData();

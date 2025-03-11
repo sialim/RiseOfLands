@@ -1,7 +1,7 @@
 package me.sialim.riseoflands.calendar;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -13,9 +13,9 @@ import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.UUID;
 
 public class CalendarPlaceholder extends PlaceholderExpansion {
-    private RiseOfLands plugin;
+    private RiseOfLandsMain plugin;
 
-    public CalendarPlaceholder(RiseOfLands plugin) { this.plugin = plugin; }
+    public CalendarPlaceholder(RiseOfLandsMain plugin) { this.plugin = plugin; }
     @Override
     public boolean persist() {
         return true;

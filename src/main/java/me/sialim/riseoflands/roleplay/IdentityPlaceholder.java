@@ -1,18 +1,16 @@
 package me.sialim.riseoflands.roleplay;
 
-import me.angeschossen.lands.api.land.Land;
-import me.angeschossen.lands.api.player.LandPlayer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 public class IdentityPlaceholder extends PlaceholderExpansion {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
 
-    public IdentityPlaceholder(RiseOfLands plugin) { this.plugin = plugin; }
+    public IdentityPlaceholder(RiseOfLandsMain plugin) { this.plugin = plugin; }
 
     @Override public boolean persist() { return true; }
     @Override public boolean canRegister() { return true; }

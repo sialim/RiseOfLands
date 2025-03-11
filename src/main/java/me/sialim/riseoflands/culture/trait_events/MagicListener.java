@@ -1,6 +1,6 @@
 package me.sialim.riseoflands.culture.trait_events;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.RTrait;
 import me.sialim.riseoflands.culture.traits.MagicCTrait;
 import org.bukkit.Material;
@@ -8,7 +8,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.EnchantItemEvent;
-import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -16,7 +15,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
 import java.util.EnumSet;
@@ -24,13 +22,13 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MagicListener implements Listener {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
 
     private final Set<PotionType> nonMagicalPotions = EnumSet.of(
             PotionType.WATER, PotionType.AWKWARD, PotionType.THICK, PotionType.MUNDANE
     );
 
-    public MagicListener(RiseOfLands plugin) {
+    public MagicListener(RiseOfLandsMain plugin) {
         this.plugin = plugin;
     }
 
@@ -98,6 +96,9 @@ public class MagicListener implements Listener {
     }
 
     private boolean hasMagicTrait(UUID uuid) {
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return false;
+        }
         return plugin.religionManager.getPlayerCulture(uuid).getTraits()
                 .stream().anyMatch(trait -> trait.getName().equals("No Magic"));
     }

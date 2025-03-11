@@ -1,6 +1,6 @@
 package me.sialim.riseoflands.culture.trait_events;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.RTrait;
 import me.sialim.riseoflands.culture.traits.PacifismMobCTrait;
 import me.sialim.riseoflands.culture.traits.PacifismPlayerCTrait;
@@ -16,11 +16,11 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PacifismListener implements Listener {
-    public RiseOfLands plugin;
+    public RiseOfLandsMain plugin;
 
     private final Map<UUID, UUID> combatTracker = new ConcurrentHashMap<>();
 
-    public PacifismListener(RiseOfLands plugin) { this.plugin = plugin; }
+    public PacifismListener(RiseOfLandsMain plugin) { this.plugin = plugin; }
 
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent e) {
@@ -78,6 +78,9 @@ public class PacifismListener implements Listener {
 
 
     public boolean hasTrait(UUID uuid, RTrait pacifTrait) {
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return false;
+        }
         return plugin.religionManager.getPlayerCulture(uuid).getTraits()
                 .stream().anyMatch(trait -> trait.getName().equals(pacifTrait.getName()));
     }

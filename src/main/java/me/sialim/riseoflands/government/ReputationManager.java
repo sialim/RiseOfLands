@@ -5,7 +5,7 @@ import me.angeschossen.lands.api.events.LandCreateEvent;
 import me.angeschossen.lands.api.events.LandTrustPlayerEvent;
 import me.angeschossen.lands.api.events.LandUntrustPlayerEvent;
 import me.angeschossen.lands.api.land.Land;
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.ReligionManager;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.model.user.User;
@@ -29,13 +29,13 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ReputationManager implements Listener {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
     private final File playerRepFile;
     private final File landsRepFile;
     private final Map<UUID, Integer> playerReputation = new ConcurrentHashMap<>();
     private final Map<Land, Double> landReputation = new ConcurrentHashMap<>();
 
-    public ReputationManager(RiseOfLands plugin) {
+    public ReputationManager(RiseOfLandsMain plugin) {
         this.plugin = plugin;
         this.playerRepFile = new File(plugin.getDataFolder(), "playerReputation.txt");
         this.landsRepFile = new File(plugin.getDataFolder(), "landReputation.txt");

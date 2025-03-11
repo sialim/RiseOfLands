@@ -1,5 +1,8 @@
 main-world: "world"
 
+fort:
+  reputation_cost_per_chunk: 50
+
 ranks:
   default:
     male: "&8Peasant"

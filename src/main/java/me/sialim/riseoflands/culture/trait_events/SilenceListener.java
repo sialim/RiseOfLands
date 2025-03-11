@@ -1,25 +1,19 @@
 package me.sialim.riseoflands.culture.trait_events;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.RTrait;
-import me.sialim.riseoflands.culture.ReligionCooldown;
-import me.sialim.riseoflands.culture.ReligionManager;
 import me.sialim.riseoflands.culture.traits.SilenceCTrait;
-import me.sialim.riseoflands.government.ReputationManager;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 public class SilenceListener implements Listener {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
 
-    public SilenceListener(RiseOfLands plugin) { this.plugin = plugin; }
+    public SilenceListener(RiseOfLandsMain plugin) { this.plugin = plugin; }
 
     @EventHandler public void onPlayerChat(AsyncPlayerChatEvent e) {
         Player p = e.getPlayer();
@@ -34,6 +28,9 @@ public class SilenceListener implements Listener {
     }
 
     private boolean hasSilenceTrait(UUID uuid) {
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return false;
+        }
         return plugin.religionManager.getPlayerCulture(uuid).getTraits()
                 .stream().anyMatch(trait -> trait.getName().equals("Silence"));
     }

@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 
 public class RoLPlaceholder extends PlaceholderExpansion {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
 
-    public RoLPlaceholder(RiseOfLands plugin) { this.plugin = plugin; }
+    public RoLPlaceholder(RiseOfLandsMain plugin) { this.plugin = plugin; }
 
     @Override public boolean persist() { return true; }
     @Override public boolean canRegister() { return true; }

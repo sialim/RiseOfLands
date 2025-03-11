@@ -1,10 +1,9 @@
 package me.sialim.riseoflands.culture.trait_events;
 
-import me.sialim.riseoflands.RiseOfLands;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.RTrait;
 import me.sialim.riseoflands.culture.traits.EarthCTrait;
 import me.sialim.riseoflands.culture.traits.NatureCTrait;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
@@ -15,7 +14,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.UUID;
 
 public class HolyBlockListener implements Listener {
-    private final RiseOfLands plugin;
+    private final RiseOfLandsMain plugin;
 
     @EventHandler public void onBlockBreak(BlockBreakEvent e) {
         UUID uuid = e.getPlayer().getUniqueId();
@@ -37,7 +36,7 @@ public class HolyBlockListener implements Listener {
         if(hasNatureTrait(uuid) && isNatureBlock(blockType)) checkForNature(uuid);
     }
 
-    public HolyBlockListener(RiseOfLands plugin) {
+    public HolyBlockListener(RiseOfLandsMain plugin) {
         this.plugin = plugin;
     }
 
@@ -47,6 +46,9 @@ public class HolyBlockListener implements Listener {
     }
 
     private boolean hasEarthTrait(UUID uuid) {
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return false;
+        }
         return plugin.religionManager.getPlayerCulture(uuid).getTraits()
                 .stream().anyMatch(trait -> trait.getName().equals("Earth"));
     }
@@ -61,6 +63,9 @@ public class HolyBlockListener implements Listener {
     }
 
     private boolean hasNatureTrait(UUID uuid) {
+        if (plugin.religionManager.getPlayerCulture(uuid) == null) {
+            return false;
+        }
         return plugin.religionManager.getPlayerCulture(uuid).getTraits()
                 .stream().anyMatch(trait -> trait.getName().equals("Nature"));
     }

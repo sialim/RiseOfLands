@@ -2,8 +2,9 @@ package me.sialim.riseoflands.discord;
 
 import github.scarsz.discordsrv.DiscordSRV;
 import github.scarsz.discordsrv.dependencies.jda.api.EmbedBuilder;
-import me.sialim.riseoflands.roleplay.IdentityManager;
-import org.bukkit.conversations.PlayerNamePrompt;
+import me.sialim.riseoflands.RiseOfLandsMain;
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -13,18 +14,20 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import java.time.LocalDate;
+
 public class DiscordGraveyard implements Listener {
     private final DiscordSRV discordSRV;
-    private IdentityManager identityManager;
+    private RiseOfLandsMain plugin;
 
-    public DiscordGraveyard(IdentityManager identityManager) {
-        this.identityManager = identityManager;
+    public DiscordGraveyard(RiseOfLandsMain plugin) {
+        this.plugin = plugin;
         discordSRV = DiscordSRV.getPlugin();
     }
 
     @EventHandler public void onPlayerDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        String playerName = (identityManager.getRoleplayName(p.getUniqueId()) != null) ? identityManager.getRoleplayName(p.getUniqueId()) : p.getName();
+        String playerName = (plugin.identityManager.getRoleplayName(p.getUniqueId()) != null) ? plugin.identityManager.getRoleplayName(p.getUniqueId()) : p.getName();
 
         if (discordSRV.getJda() == null) {
             System.out.println("DiscordSRV JDA is null! The bot might not be connected.");
@@ -33,11 +36,21 @@ public class DiscordGraveyard implements Listener {
 
         if (discordSRV.getJda().getTextChannelById("1264435880400126075") == null) {
             System.out.println("Error: Bot cannot access the Discord channel!");
+            return;
         }
+
+        if (!plugin.identityManager.hasIdentity(p.getUniqueId())) return;
+
+        LocalDate birthDate = plugin.identityManager.getBirthDate(p.getUniqueId());
+        String birthdate = plugin.calendar.getFormattedDate(birthDate);
+
+        String worldName = plugin.getConfig().getString("main-world");
+        LocalDate deathDate = plugin.calendar.worldDates.get(worldName);
+        String deathdate = plugin.calendar.getFormattedDate(deathDate);
 
         EmbedBuilder embed = new EmbedBuilder();
         embed.setTitle("Here lies, " + playerName + " (" + p.getName() + ")").setColor(0xFF0000)
-                        .setDescription(getDeathCause(p) + " (birthdate - deathdate) (Beta)");
+                        .setDescription(getDeathCause(p) + " (" + birthdate + " - " + deathdate + ") (Season 0)");
 
         discordSRV.getJda().getTextChannelById("1264435880400126075").sendMessageEmbeds(embed.build()).queue();
     }

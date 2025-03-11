@@ -1,11 +1,9 @@
 package me.sialim.riseoflands.culture;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import me.angeschossen.lands.api.land.Land;
 import me.angeschossen.lands.api.player.LandPlayer;
-import me.sialim.riseoflands.RiseOfLands;
-import me.sialim.riseoflands.culture.trait_events.SilenceListener;
+import me.sialim.riseoflands.RiseOfLandsMain;
 import me.sialim.riseoflands.culture.traits.*;
 import me.sialim.riseoflands.government.ReputationManager;
 import org.bukkit.Bukkit;
@@ -19,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ReligionManager {
-    public RiseOfLands plugin;
+    public RiseOfLandsMain plugin;
     private final File religionFile;
     private final File cooldownFile;
     private final File landReligionFile;
@@ -28,7 +26,7 @@ public class ReligionManager {
     public Map<UUID, ReligionCooldown> cooldowns;
     private final ReputationManager reputationManager;
 
-    public ReligionManager(RiseOfLands plugin, ReputationManager reputationManager) {
+    public ReligionManager(RiseOfLandsMain plugin, ReputationManager reputationManager) {
         this.plugin = plugin;
         if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
@@ -406,8 +404,8 @@ public class ReligionManager {
         saveCooldownsToFile();
         String username = Bukkit.getPlayer(playerName).getName();
         int rep = reputationManager.getPlayerReputation(playerName);
-        p.sendMessage("Your sins have been forgiven. You now have " + rep + " reputation points.");
-        Bukkit.getLogger().info(username + " has been forgiven of their sins. New rep: " + rep);
+        //p.sendMessage("Your sins have been forgiven. You now have " + rep + " reputation points.");
+        //Bukkit.getLogger().info(username + " has been forgiven of their sins. New rep: " + rep);
 
         return p.getName() + " has been forgiven. They now have " + rep + " reputation points.";
     }

@@ -1,9 +1,9 @@
 name: RiseOfLands
 version: '${project.version}'
-main: me.sialim.riseoflands.RiseOfLands
+main: me.sialim.riseoflands.RiseOfLandsMain
 api-version: '1.21'
 author: bermei
-depend: [PlaceholderAPI, Lands, AdvancedSeasons]
+depend: [PlaceholderAPI, Lands, AdvancedSeasons, Vault, LuckPerms]
 commands:
   religion:
     description: Manage your culture
