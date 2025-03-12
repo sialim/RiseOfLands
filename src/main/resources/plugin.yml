@@ -28,3 +28,6 @@ commands:
   temperature:
     description: "Set temperature preference."
     usage: "/temperature set [celsius|fahrenheit]"
+  buildershop:
+    description: "Opens the builder shop."
+    usage: "/buildershop"

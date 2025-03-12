@@ -118,6 +118,15 @@ public class IdentityManager implements Listener, TabExecutor {
     }
 
     public void savePlayerData() {
+        if (dataFile == null) {
+            return;
+        }
+
+        if (!plugin.getDataFolder().exists()) {
+            dataFile.getParentFile().mkdirs();
+            plugin.getDataFolder().mkdirs();
+        }
+
         try (Writer writer = new FileWriter(dataFile)) {
             gson.toJson(playerDataMap, writer);
         } catch (IOException e) {

@@ -1,6 +1,7 @@
 package me.sialim.riseoflands;
 
 import me.angeschossen.lands.api.LandsIntegration;
+import me.sialim.riseoflands.buildershop.BuilderShop;
 import me.sialim.riseoflands.calendar.CalendarPlaceholder;
 import me.sialim.riseoflands.calendar.GameCalendar;
 import me.sialim.riseoflands.calendar.PlayerDataManager;
@@ -46,6 +47,7 @@ public final class RiseOfLandsMain extends JavaPlugin {
     public TameListener tameListener;
     public PacifismListener pacifismListener;
     public LandsSpawnManager lsm;
+    public BuilderShop bs;
 
     private static Economy econ = null;
     private static Permission perms = null;
@@ -53,6 +55,9 @@ public final class RiseOfLandsMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // API registration
+        api = LandsIntegration.of(this);
+
         // Initialization
         playerDataManager = new PlayerDataManager(this);
         reputationManager = new ReputationManager(this);
@@ -70,6 +75,11 @@ public final class RiseOfLandsMain extends JavaPlugin {
         pacifismListener = new PacifismListener(this);
         calendar = new GameCalendar(this, playerDataManager);
         lsm = new LandsSpawnManager(this);
+        bs = new BuilderShop(this);
+
+        // Data registration
+        saveDefaultConfig();
+        identityManager.initializeDataFile();
 
 
         // Vault
@@ -108,6 +118,7 @@ public final class RiseOfLandsMain extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(discordGraveyard, this);
         Bukkit.getPluginManager().registerEvents(calendar, this);
         Bukkit.getPluginManager().registerEvents(lsm, this);
+        Bukkit.getPluginManager().registerEvents(bs, this);
         //Bukkit.getPluginManager().registerEvents(, this);
 
         // Command registration
@@ -119,16 +130,10 @@ public final class RiseOfLandsMain extends JavaPlugin {
         getCommand("resume").setExecutor(calendar);
         getCommand("date").setExecutor(calendar);
         getCommand("date").setTabCompleter(calendar);
-
-
-        // Data registration
-        saveDefaultConfig();
-        identityManager.initializeDataFile();
+        getCommand("buildershop").setExecutor(bs);
 
         // Timer registration
         minuteTimer();
-
-        api = LandsIntegration.of(this);
 
         RegisteredServiceProvider<LuckPerms> otherProvider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (otherProvider != null) {
