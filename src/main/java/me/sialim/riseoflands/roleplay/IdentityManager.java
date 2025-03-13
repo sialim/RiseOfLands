@@ -195,6 +195,7 @@ public class IdentityManager implements Listener, TabExecutor {
         private final LocalDate birthDate;
         private final LocalDate deathDate;
         private float maxHeight;
+        private boolean displayNation = true;
 
         public IdentityData(UUID playerUUID, Gender gender, LabelSetting labelSetting, String roleplayName, DisplayMode displayMode, LocalDate birthDate) {
             this.playerUUID = playerUUID;
@@ -233,6 +234,14 @@ public class IdentityManager implements Listener, TabExecutor {
         }
 
         public float getHeight() { return maxHeight; }
+
+        public boolean isDisplayNation() {
+            return displayNation;
+        }
+
+        public void setDisplayNation(boolean displayNation) {
+            this.displayNation = displayNation;
+        }
     }
 
     public float calculateSize(UUID uuid) {
@@ -322,7 +331,7 @@ public class IdentityManager implements Listener, TabExecutor {
 
     public String getRoleplayName(UUID uuid) {
         IdentityData data = playerDataMap.get(uuid);
-        return (data != null && data.roleplayName != null) ? formatRoleplayName(data.roleplayName) : "Unknown";
+        return (data != null && data.roleplayName != null) ? formatRoleplayName(data.roleplayName) : Bukkit.getPlayer(uuid).getName();
     }
 
     public Gender getGender(UUID uuid) {
@@ -444,6 +453,29 @@ public class IdentityManager implements Listener, TabExecutor {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("shownation") && args.length == 2) {
+            if (!playerDataMap.containsKey(uuid)) {
+                p.sendMessage(ChatColor.RED + "You need to create a gender and roleplay name first.");
+                return false;
+            }
+
+            boolean displayMode;
+            try {
+                displayMode = Boolean.valueOf(args[1].toUpperCase());
+            } catch (IllegalArgumentException e) {
+                p.sendMessage(ChatColor.RED + "Invalid display mode. Please use 'true' or 'false'.");
+                return false;
+            }
+
+            IdentityData data = playerDataMap.get(uuid);
+            data.setDisplayNation(displayMode);
+            playerDataMap.put(uuid, data);
+            p.sendMessage(ChatColor.GREEN + "Your show-nation label mode has been updated to " + String.valueOf(displayMode) + ".");
+            savePlayerData();
+            return true;
+        }
+
+
         return false;
     }
 
@@ -560,7 +592,7 @@ public class IdentityManager implements Listener, TabExecutor {
     }
 
     public boolean hasArtisan(Player player) {
-        return player.hasPermission("group.artisan");
+        return false;
     }
 
     public String getRankLabel(String rank, IdentityData identityData) {
@@ -621,6 +653,11 @@ public class IdentityManager implements Listener, TabExecutor {
         return ChatColor.translateAlternateColorCodes('&', label);
     }
 
+    public boolean isShowingNation(IdentityData identityData) {
+        if (identityData == null) return false;
+        return identityData.displayNation;
+    }
+
     public String getLandLabel(Player p) {
         LandPlayer lP = plugin.api.getLandPlayer(p.getUniqueId());
         if (lP == null || lP.getEditLand(false) == null) {
@@ -641,6 +678,7 @@ public class IdentityManager implements Listener, TabExecutor {
             suggestions.add("create");
             suggestions.add("label");
             suggestions.add("displaylabel");
+            suggestions.add("shownation");
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("create")) {
                 suggestions.add("male");
@@ -658,6 +696,11 @@ public class IdentityManager implements Listener, TabExecutor {
                 suggestions.add("staff");
                 suggestions.add("land");
                 suggestions.add("gender");
+            }
+
+            if (args[0].equalsIgnoreCase("shownation")) {
+                suggestions.add("true");
+                suggestions.add("false");
             }
         } else if (args.length >= 3) {
             if (args[0].equalsIgnoreCase("create")) {

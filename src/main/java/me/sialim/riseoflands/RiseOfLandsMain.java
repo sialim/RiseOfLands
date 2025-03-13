@@ -5,6 +5,7 @@ import me.sialim.riseoflands.buildershop.BuilderShop;
 import me.sialim.riseoflands.calendar.CalendarPlaceholder;
 import me.sialim.riseoflands.calendar.GameCalendar;
 import me.sialim.riseoflands.calendar.PlayerDataManager;
+import me.sialim.riseoflands.chat.ChatFormatter;
 import me.sialim.riseoflands.culture.ReligionCommandExecutor;
 import me.sialim.riseoflands.culture.ReligionManager;
 import me.sialim.riseoflands.culture.trait_events.*;
@@ -48,13 +49,23 @@ public final class RiseOfLandsMain extends JavaPlugin {
     public PacifismListener pacifismListener;
     public LandsSpawnManager lsm;
     public BuilderShop bs;
+    public ChatFormatter chatFormatter;
 
-    private static Economy econ = null;
+    public static Economy econ = null;
     private static Permission perms = null;
     private static Chat chat = null;
 
     @Override
     public void onEnable() {
+        // Vault
+        if (!setupEconomy() ) {
+            getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        setupPermissions();
+        setupChat();
+
         // API registration
         api = LandsIntegration.of(this);
 
@@ -76,20 +87,12 @@ public final class RiseOfLandsMain extends JavaPlugin {
         calendar = new GameCalendar(this, playerDataManager);
         lsm = new LandsSpawnManager(this);
         bs = new BuilderShop(this);
+        chatFormatter = new ChatFormatter(this);
 
         // Data registration
         saveDefaultConfig();
         identityManager.initializeDataFile();
-
-
-        // Vault
-        if (!setupEconomy() ) {
-            getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-        setupPermissions();
-        setupChat();
+        bs.loadShopConfig();
 
         // PAPI
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
@@ -119,6 +122,7 @@ public final class RiseOfLandsMain extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(calendar, this);
         Bukkit.getPluginManager().registerEvents(lsm, this);
         Bukkit.getPluginManager().registerEvents(bs, this);
+        Bukkit.getPluginManager().registerEvents(chatFormatter, this);
         //Bukkit.getPluginManager().registerEvents(, this);
 
         // Command registration
@@ -166,6 +170,7 @@ public final class RiseOfLandsMain extends JavaPlugin {
     public void resetPlayerReputations() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             //religionManager.resetReputation(player.getUniqueId());
+            if (!religionManager.isPlayerInAnyCulture(player.getUniqueId())) return;
             religionManager.forgive(player.getUniqueId());
         }
     }
@@ -176,9 +181,6 @@ public final class RiseOfLandsMain extends JavaPlugin {
         }
     }
 
-    public Economy getEconomy() {
-        return econ;
-    }
 
     private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {

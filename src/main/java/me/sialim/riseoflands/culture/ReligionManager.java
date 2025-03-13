@@ -414,6 +414,8 @@ public class ReligionManager {
         ReligionCooldown cooldown = cooldowns.getOrDefault(playerName, new ReligionCooldown());
         long currentTime = System.currentTimeMillis();
 
+        if (!isPlayerInAnyCulture(playerName)) return;
+
         if ((currentTime - cooldown.getForgivenessTimer() >= TimeUnit.DAYS.toMillis(2))
         && currentTime - cooldown.getCultureJoinTime() >= TimeUnit.DAYS.toMillis(1)) {
             if (cooldown.getForgivenessTimer() > 0) {
@@ -434,6 +436,7 @@ public class ReligionManager {
     }
 
     public int getTraitPoints(Religion religion) {
+        if (religion == null) return 0;
         int traitPoints = 0;
         for (RTrait trait : religion.getTraits()) {
             traitPoints += trait.getPoints();

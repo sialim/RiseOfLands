@@ -1,5 +1,7 @@
 package me.sialim.riseoflands.roleplay;
 
+import me.angeschossen.lands.api.land.Land;
+import me.angeschossen.lands.api.player.LandPlayer;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.sialim.riseoflands.RiseOfLandsMain;
 import org.bukkit.ChatColor;
@@ -30,6 +32,22 @@ public class IdentityPlaceholder extends PlaceholderExpansion {
         if (identifier.equals("name")) return plugin.identityManager.getRoleplayName(uuid);
         if (identifier.equals("gender")) return plugin.identityManager.getGenderDisplay(uuid);
         if (identifier.equals("displaylabel")) return plugin.identityManager.getDisplayLabel(player);
+        if (identifier.equals("loyaltylabel")) {
+            if (plugin.api.getLandPlayer(uuid) != null) {
+                LandPlayer landPlayer = plugin.api.getLandPlayer(uuid);
+                Land land = landPlayer.getEditLand(false);
+                if (land == null) return fallback;
+                if (plugin.identityManager.isShowingNation(plugin.identityManager.getIdentity(uuid))) {
+                    return land.getNation() != null ? land.getNation().getColorName() : land.getColorName();
+                } else {
+                    return land.getColorName();
+                }
+            } else {
+                return fallback;
+            }
+        }
+        if (identifier.equals("rank")) return plugin.identityManager
+                .getRankLabel(plugin.identityManager.getPlayerRank(player), plugin.identityManager.getIdentity(uuid));
         return null;
     }
 }

@@ -62,14 +62,9 @@ public class GameCalendar implements Listener, CommandExecutor, TabCompleter {
     }
 
     private void startSeasonUpdater() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!isPaused) {
-                    updateSeason(Bukkit.getWorld(plugin.getConfig().getString("main-world")));
-                }
-            }
-        }.runTaskTimer(plugin, 0L, 1200L);
+        if (!isPaused) {
+            updateSeason(Bukkit.getWorld(plugin.getConfig().getString("main-world")));
+        }
     }
 
     private void loadWorldData() {
