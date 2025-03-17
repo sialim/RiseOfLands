@@ -48,6 +48,10 @@ public class IdentityPlaceholder extends PlaceholderExpansion {
         }
         if (identifier.equals("rank")) return plugin.identityManager
                 .getRankLabel(plugin.identityManager.getPlayerRank(player), plugin.identityManager.getIdentity(uuid));
+
+        if (identifier.equals("staff_rank")) return plugin.identityManager
+                .getStaffLabel(plugin.identityManager.getPlayerStaffRank(player), plugin.identityManager.getIdentity(uuid),
+                        plugin.identityManager.getRankLabel(plugin.identityManager.getPlayerRank(player), plugin.identityManager.getIdentity(uuid)));
         return null;
     }
 }

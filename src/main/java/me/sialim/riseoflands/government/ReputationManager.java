@@ -87,6 +87,10 @@ public class ReputationManager implements Listener {
                 String[] parts = line.split(",");
                 if (parts.length == 2) {
                     Land land = plugin.api.getLandByName(parts[0]);
+                    if (land == null) {
+                        plugin.getLogger().warning("Land not found: " + parts[0]);
+                        continue; // Skip this entry
+                    }
                     double reputation = Double.parseDouble(parts[1]);
                     landReputation.put(land, reputation);
                 }

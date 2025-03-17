@@ -31,3 +31,13 @@ commands:
   buildershop:
     description: "Opens the builder shop."
     usage: "/buildershop"
+  givespawnegg:
+    description: "Gives a custom spawn egg with spawner compatibility."
+    usage: "/givespawnegg <entity> <allowedOnSpawners>"
+  spawn:
+    description: "Teleport to spawn."
+    usage: "/spawn {leave}"
+  home:
+    description: "Travel to a home."
+  sethome:
+    description: "Create a new home."

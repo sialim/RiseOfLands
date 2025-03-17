@@ -163,6 +163,8 @@ public class IdentityManager implements Listener, TabExecutor {
     @EventHandler public void onPlayerDamage(EntityDamageEvent e) {
         if (e.getEntity() instanceof Player p) {
             promptIdentityCreation(e, p);
+        } else if (e.getDamageSource() instanceof Player pe) {
+            promptIdentityCreation(e, pe);
         }
     }
 
@@ -247,22 +249,23 @@ public class IdentityManager implements Listener, TabExecutor {
     public float calculateSize(UUID uuid) {
         if (playerDataMap.containsKey(uuid)) {
             LocalDate birthDate = playerDataMap.get(uuid).getBirthDate();
-            LocalDate currentDate = plugin.calendar.worldDates.get(plugin.getConfig().getString("main-world"));
+            if (birthDate != null) {
+                LocalDate currentDate = plugin.calendar.worldDates.get(plugin.getConfig().getString("main-world"));
 
-            int currentAge = currentDate.getYear() - birthDate.getYear();
-            int maxAge = 18;
-            float minSize = 0.7f;
+                int currentAge = currentDate.getYear() - birthDate.getYear();
+                int maxAge = 18;
+                float minSize = 0.7f;
 
-            currentAge = Math.min(currentAge, maxAge);
+                currentAge = Math.min(currentAge, maxAge);
 
-            double size = (playerDataMap.get(uuid).getHeight() - minSize) * Math.sqrt((1.0 / maxAge) * currentAge) + minSize;
-            if (size < 0.7) {
-                size = 0.7;
+                double size = (playerDataMap.get(uuid).getHeight() - minSize) * Math.sqrt((1.0 / maxAge) * currentAge) + minSize;
+                if (size < 0.7) {
+                    size = 0.7;
+                }
+                return (float) size;
             }
-            return (float) size;
-        } else {
-            return 1f;
         }
+        return 1f;
     }
 
     public String calculateAge(UUID uuid) {
@@ -331,7 +334,7 @@ public class IdentityManager implements Listener, TabExecutor {
 
     public String getRoleplayName(UUID uuid) {
         IdentityData data = playerDataMap.get(uuid);
-        return (data != null && data.roleplayName != null) ? formatRoleplayName(data.roleplayName) : Bukkit.getPlayer(uuid).getName();
+        return (data != null && data.roleplayName != null) ? data.roleplayName : Bukkit.getPlayer(uuid).getName();
     }
 
     public Gender getGender(UUID uuid) {
@@ -394,6 +397,11 @@ public class IdentityManager implements Listener, TabExecutor {
             }
 
             String roleplayName = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+
+            if (!roleplayName.matches("[A-Za-z .,'\"öäüáóàòìíéèêëîâôû-]+") || roleplayName.length() > 24){
+                p.sendMessage(ChatColor.RED + "Invalid roleplay name. The name must be alphanumeric and less than 24 characters.");
+                return false;
+            }
 
             if (playerDataMap.containsKey(uuid)) {
                 p.sendMessage(ChatColor.RED + "You already have a gender and roleplay name set.");
@@ -488,7 +496,7 @@ public class IdentityManager implements Listener, TabExecutor {
             case RANK:
                 return getRankLabel(getPlayerRank(player), data);
             case STAFF:
-                return getStaffLabel(getPlayerStaffRank(player), data);
+                return getStaffLabel(getPlayerStaffRank(player), data, getPlayerRank(player));
             case GENDER:
                 return getGenderDisplay(uuid);
             case LAND:
@@ -525,18 +533,10 @@ public class IdentityManager implements Listener, TabExecutor {
         String highestRank = "default";
         int highestWeight = getPurchasableRankWeight(highestRank);
 
-        // Get the player user object
-        User user = lp.getPlayerAdapter(Player.class).getUser(player);
-
-        // Check the primary group of the player
-        String primaryGroup = user.getPrimaryGroup();
-
-        // Define the rank hierarchy
         List<String> rankOrder = Arrays.asList("supporter", "knight", "lord", "baron", "duke", "prince", "king", "peasant");
 
-        // Loop through the ranks and check the weight
         for (String rank : rankOrder) {
-            if (primaryGroup.equals(rank)) {
+            if (player.hasPermission("group." + rank)) {
                 int weight = getPurchasableRankWeight(rank);
                 if (weight > highestWeight) {
                     highestRank = rank;
@@ -551,15 +551,12 @@ public class IdentityManager implements Listener, TabExecutor {
     public String getPlayerStaffRank(Player player) {
         String highestStaffRank = null;
         int highestWeight = 0;
-        User user = lp.getPlayerAdapter(Player.class).getUser(player);
+        //User user = lp.getUserManager().getUser(player.getUniqueId());
 
-        String primaryGroup = user.getPrimaryGroup();
-
-        // Define the staff rank hierarchy
         List<String> staffRankOrder = Arrays.asList("builder", "helper", "mod", "god", "dev", "admin");
 
         for (String staffRank : staffRankOrder) {
-            if (primaryGroup.equals(staffRank)) {
+            if (player.hasPermission("group." + staffRank)) {
                 int weight = getStaffRankWeight(staffRank);
                 if (weight > highestWeight) {
                     highestStaffRank = staffRank;
@@ -624,8 +621,8 @@ public class IdentityManager implements Listener, TabExecutor {
         return ChatColor.translateAlternateColorCodes('&', label);
     }
 
-    public String getStaffLabel(String staffRank, IdentityData identityData) {
-        if (staffRank == null || identityData == null) return "Unknown";
+    public String getStaffLabel(String staffRank, IdentityData identityData, String playerRank) {
+        if (staffRank == null || identityData == null) return "Unknown0";
 
         String genderString;
         switch (identityData.labelSetting) {
@@ -643,11 +640,10 @@ public class IdentityManager implements Listener, TabExecutor {
         }
 
         String path = "staff." + staffRank.toLowerCase().replace(" ", "_") + "." + genderString;
-        String label = plugin.getConfig().getString(path, "Unknown");
+        String label = plugin.getConfig().getString(path, null);
 
-        if (label.equals("Unknown")) {
-            path = "staff.default." + genderString;
-            label = plugin.getConfig().getString(path, "Unknown");
+        if (label == null) {
+            label = playerRank;
         }
 
         return ChatColor.translateAlternateColorCodes('&', label);

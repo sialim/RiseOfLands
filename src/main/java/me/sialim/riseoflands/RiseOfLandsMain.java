@@ -11,7 +11,9 @@ import me.sialim.riseoflands.culture.ReligionManager;
 import me.sialim.riseoflands.culture.trait_events.*;
 import me.sialim.riseoflands.discord.DiscordGraveyard;
 import me.sialim.riseoflands.government.ReputationManager;
+import me.sialim.riseoflands.lands.HomeManager;
 import me.sialim.riseoflands.lands.LandsSpawnManager;
+import me.sialim.riseoflands.lands.SpawnManager;
 import me.sialim.riseoflands.roleplay.IdentityManager;
 import me.sialim.riseoflands.roleplay.IdentityPlaceholder;
 import net.advancedplugins.seasons.api.AdvancedSeasonsAPI;
@@ -24,6 +26,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.UUID;
 
 public final class RiseOfLandsMain extends JavaPlugin {
     public LuckPerms lp;
@@ -50,6 +54,9 @@ public final class RiseOfLandsMain extends JavaPlugin {
     public LandsSpawnManager lsm;
     public BuilderShop bs;
     public ChatFormatter chatFormatter;
+    public SpawnEggManager sem;
+    public SpawnManager sm;
+    public HomeManager hm;
 
     public static Economy econ = null;
     private static Permission perms = null;
@@ -88,11 +95,15 @@ public final class RiseOfLandsMain extends JavaPlugin {
         lsm = new LandsSpawnManager(this);
         bs = new BuilderShop(this);
         chatFormatter = new ChatFormatter(this);
+        sem = new SpawnEggManager(this);
+        sm = new SpawnManager(this);
+        hm = new HomeManager(this);
 
         // Data registration
         saveDefaultConfig();
         identityManager.initializeDataFile();
         bs.loadShopConfig();
+        hm.loadHomes();
 
         // PAPI
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
@@ -123,6 +134,8 @@ public final class RiseOfLandsMain extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(lsm, this);
         Bukkit.getPluginManager().registerEvents(bs, this);
         Bukkit.getPluginManager().registerEvents(chatFormatter, this);
+        Bukkit.getPluginManager().registerEvents(sem, this);
+        Bukkit.getPluginManager().registerEvents(sm, this);
         //Bukkit.getPluginManager().registerEvents(, this);
 
         // Command registration
@@ -135,9 +148,14 @@ public final class RiseOfLandsMain extends JavaPlugin {
         getCommand("date").setExecutor(calendar);
         getCommand("date").setTabCompleter(calendar);
         getCommand("buildershop").setExecutor(bs);
+        getCommand("givespawnegg").setExecutor(sem);
+        getCommand("spawn").setExecutor(sm);
+        getCommand("home").setExecutor(hm);
+        getCommand("sethome").setExecutor(hm);
 
         // Timer registration
         minuteTimer();
+        sem.startSpawnerProximityCheck();
 
         RegisteredServiceProvider<LuckPerms> otherProvider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (otherProvider != null) {
@@ -149,13 +167,28 @@ public final class RiseOfLandsMain extends JavaPlugin {
     @Override
     public void onDisable() {
         // Data storage
-        reputationManager.saveLandReputation();
-        reputationManager.savePlayerReputation();
-        identityManager.savePlayerData();
-        religionManager.saveCulturesToJson();
-        religionManager.saveCooldownsToFile();
-        religionManager.saveLandReligions();
-        playerDataManager.savePlayerData();
+        if (reputationManager != null) {
+            reputationManager.saveLandReputation();
+            reputationManager.savePlayerReputation();
+        }
+        if (identityManager != null) {
+            identityManager.savePlayerData();
+        }
+        if (religionManager != null) {
+            religionManager.saveCulturesToJson();
+            religionManager.saveCooldownsToFile();
+            religionManager.saveLandReligions();
+        }
+        if (playerDataManager != null) {
+            playerDataManager.savePlayerData();
+        }
+        if (hm != null) {
+            hm.saveHomes();
+        }
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.teleport(sm.getPreviousLocation(player));
+        }
     }
 
     public void minuteTimer() {
